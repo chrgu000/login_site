@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Django settings for login_site project.
 
@@ -29,6 +30,7 @@ ALLOWED_HOSTS = ['*']
 
 
 # Application definition
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -78,7 +80,7 @@ WSGI_APPLICATION = 'login_site.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'loginsite',
+        'NAME': 'testlogin',
         'USER':'root',
         'PASSWORD':'12345678',
         'HOST':'localhost',
@@ -125,6 +127,7 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR,'static/static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static'),]
 # STATICFILES_DIRS = (
     # ('css',os.path.join(STATIC_ROOT,'css').replace('\\','/') ),
@@ -140,3 +143,8 @@ EMAIL_HOST_USER = '1069176850@qq.com'
 EMAIL_HOST_PASSWORD = 'ppaztgcvujdibfce'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+
+# 指定 MEDIA_URL 的位置
+MEDIA_URL = '/media/'
+# MEIDA_ROOT = '/home/oscar/erpDjango/login_site/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'newmedia').replace('\\', '/')+'/'

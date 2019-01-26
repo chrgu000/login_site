@@ -16,6 +16,8 @@ Including another URLconf
 from django.conf.urls import url,include,static
 from django.contrib import admin
 from login import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -23,5 +25,13 @@ urlpatterns = [
     url(r'^login/', views.login),
     url(r'^register/', views.register),
     url(r'^logout/', views.logout),
-    url(r'^captcha', include('captcha.urls')) 
+    url(r'^captcha', include('captcha.urls')),
+    url(r'^addproduct/',views.addproduct),
+    url(r'^inventory/',views.inventory),
+    url(r'^detail/(\d+)$',views.detail,name='detail-url'),
+    url(r'^result/',views.search),
+    url(r'^search/',views.search,name='search'),
+
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

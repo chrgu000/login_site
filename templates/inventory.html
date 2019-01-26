@@ -1,0 +1,47 @@
+{% extends 'login/base.html' %}
+
+{% block title %}库存表{% endblock %}
+{% block content %}
+    <div class="container">
+        <div style="margin-top: 30px;margin-right: 830px;">
+            <form method="get" action="/search/" class="form-search" style="height:50px;">
+                {% csrf_token %}
+                <input type="search" placeholder="按名称或描述词搜索" name="q" style="height:35px;width:200px;">
+                <button type="reset" class="btn btn-default pull-left">重置</button>
+                <button type="submit" class="btn btn-primary pull-right">提交</button>
+            </form>
+        </div>
+    {% for p in products %}
+    {% if forloop.first %}
+    <table class="table table-striped">
+        <tr>
+            <td width=100 align=center>英文名称</td>
+            <td width=100 align=center>时间编号</td>
+            <td width=300 align=center>唯一识别码</td>
+            <td width=100 align=center>中文详细描述</td>
+            <td width=100 align=center>库存数量</td>
+            <td width=100 align=center>进货价格</td>
+            <td width=100 align=center>销售价格</td>
+            <td width=100 align=center>库存位置</td>
+            <td width=100 align=center>销售状态</td>
+            <td width=100 align=center>产品图片</td></tr>
+    {% endif%}
+            <td><a href='{% url "detail-url" p.id%}'>{{p.nickname}}</a></td>
+            <td>{{p.adate}}</td>
+            <td>{{p.uniqueid}}</td>
+            <td>{{p.description}}</td>
+            <td>{{p.count}}</td>
+            <td>{{p.purchase_price}}</td>
+            <td>{{p.sale_price}}</td>
+            <td>{{p.warehouse}}</td>
+            <td>{{p.can_sale | yesno:"可销售,不可销售"}}</td>
+            <!-- <td><img src='{{p.image.url}}' height="50" ></td> -->
+            <td><img src='{{p.image.url}}' height="50" ></td></tr>
+    {% if forloop.last %}
+    </table>
+    {% endif%}
+    {% empty%}
+    <h3>还没有添加库存信息,请点击增加产品</h3>
+    {% endfor %}
+    </div> <!-- /container -->
+{% endblock %}

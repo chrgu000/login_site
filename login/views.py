@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render,redirect
 from login import models,forms
+from django.template.loader import get_template
 import hashlib
+from django.db.models import Q
 # Create your views here.
 
 
 def index(request):
-    pass
+
     return render(request,'login/index.html')
 
 def login(request):
@@ -85,6 +87,70 @@ def logout(request):
     # del request.session['user_id']
     # del request.session['user_name']
     return redirect("/index/")
+
+def addproduct(request):
+    #如果没有登录,则无法通过输入地址方法登录.
+    if not request.session.get('is_login',None):
+        return redirect('/index')
+    
+    if request.method == 'POST':
+        addproduct_form = forms.AddproductForm(request.POST,request.FILES)
+        if addproduct_form.is_valid():
+            addproduct_form.save()
+            message = "您提交的信息已存储"
+
+        else:
+            message = '请完善产品信息'
+            return render(request, 'addproduct.html', locals())
+    else:
+        addproduct_form = forms.AddproductForm()
+        message = '请填写产品信息'
+    return render(request, 'addproduct.html', locals())
+
+def inventory(request):
+    #如果没有登录,则无法通过输入地址方法登录.
+    if not request.session.get('is_login',None):
+        return redirect('/index')
+    products = models.Product.objects.all()
+    return render(request, 'inventory.html', locals())
+
+def detail(request,id):
+    #如果没有登录,则无法通过输入地址方法登录.
+    if not request.session.get('is_login',None):
+        return redirect('/index')
+
+    try:
+        product = models.Product.objects.get(id=id)
+    except:
+        pass
+    return render(request, 'detail.html', locals())
+
+def search(request):
+    q = request.GET.get('q')
+    error_msg = ''
+    if not q:
+        return redirect('/inventory')
+        
+    post_list = models.Product.objects.filter(Q(nickname__icontains=q)|
+                Q(feature__icontains=q)|Q(description__icontains=q))
+    return render(request, 'result.html', {'post_list':post_list})
+
+# def result(request):
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def hash_code(s, salt='mysite'):# 加点盐
     h = hashlib.sha256()
