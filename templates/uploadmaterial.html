@@ -1,0 +1,32 @@
+{% extends 'login/base.html' %}
+{% block title %}物料批量上传{% endblock %}
+
+{% block content %}
+<div class="container">
+        <div class="col-md-9 col-md-offset-3">
+          <form name="uploadmaterial-form" class='form-uploadfiles' action="." method="post" enctype="multipart/form-data">
+
+              {% if message %}
+                  <div class="alert alert-warning">{{ message }}</div>
+              {% endif %}
+
+              {% csrf_token %}
+              <h1>批量新增或入库物料</h1>
+              <label for="code">入库编号:</label>
+              <input id="code" type="text" name="code"/></br>
+              <label for="c_time">入库时间:</label>
+              <input for="c_time" type="date" name="c_time"/><br> 
+              <label for="description">入库信息:</label>
+              <input for="description" type="text" name="description"/><br> 
+              <label for="user">入库人:</label>
+              <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
+              <p></p>
+              选择上传文件:<input type="file" name="files"></br>
+              <button type="reset" class="btn btn-default pull-left">重置</button>
+              <button type="submit" class="btn btn-primary pull-right">提交</button>
+          </form>
+        </div>
+</div>
+
+
+{% endblock %}

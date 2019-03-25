@@ -1,0 +1,32 @@
+{% extends 'login/base.html' %}
+
+{% block title %}
+    {{instock.code | default:"找不到指定的对象"}}
+{% endblock %}
+
+{% block content %}
+    <div class="container" align=center>
+        <div class="col-md-4 col-md-offset-4">
+            {% if instock %}
+                <table class="table table-striped">
+                <tr><td align=center>编号:{{instock.code}}</td></tr>
+                <tr><td align=center>入库人:{{instock.userInstock}}</td></tr>
+                <tr><td align=center>入库时间:{{instock.c_time}}</td></tr>
+                <tr><td align=center>详细信息:{{instock.description}}</td></tr>
+                </table>
+            {% else %}
+            <h2>找不到指定的产品</h2>
+            {% endif %}
+            {% if initems %}
+                {% for item in initems %}
+                <table class="table table-striped">
+                    <tr>
+                    <td>{{ item.materialName }}</td>
+                    <td>{{ item.amountIn }}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+    </div> <!-- /container -->
+{% endblock %}

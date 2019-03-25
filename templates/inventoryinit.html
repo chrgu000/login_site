@@ -1,0 +1,34 @@
+{% extends 'login/base.html' %}
+{% block title %}新增库存物料{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="col-md-6 col-md-offset-3">
+          <form class='form-inventoryinit' action="." method="post" enctype="multipart/form-data">
+              {% if message %}
+                  <div class="alert alert-warning">{{ message }}</div>
+              {% endif %}
+              
+              {% csrf_token %}
+                <label for="uniqueid">唯一识别码:</label>
+                 <input id="uniqueid" type="text" name="uniqueid"/></br>
+                <label for="amount">库存数量:</label>
+                 <input id="amount" type="text" name="amount"/></br>
+                <label for="description">物料信息:</label>
+                 <input id="description" type="text" name="description"/></br>
+                <label for="user">入库人:</label>
+                 <select name="user">
+                 {% for u in users %}
+                 <option value={{u.name}}>{{u.name}}</option>
+                 {% endfor %}
+                 </select>
+                选择上传图片:<input type="file" name="image"></br>
+
+
+
+
+              <button type="reset" class="btn btn-default pull-left">重置</button>
+              <button type="submit" class="btn btn-primary pull-right">提交</button>
+          </form>
+        </div>
+    </div> <!-- /container -->
+{% endblock %}

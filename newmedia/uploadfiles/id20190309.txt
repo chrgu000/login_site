@@ -1,0 +1,263 @@
+15827511791
+
+qq
+1069176850
+liushiyao99
+
+手机游戏华为账号
+手机号
+lsy198699
+github 
+oscarliusy
+lsy198699
+
+Django learning_log项目
+超级用户：ll_admin
+邮箱：123@qq.com
+密码:admin123
+
+用户1：oscar
+密码：123
+
+bilibili
+手机号
+lsy1986
+
+python社区
+id oscar_liu
+pw lsy1986
+
+淘宝 id wowoscar
+pw liushiyao99
+
+亚马逊
+id：手机号或oscar_liu或oscar
+pw：lsy1986
+
+知乎
+qq邮箱
+lsy198699
+
+csdn
+手机号
+Sf_2BnaZeN
+
+微信小程序及公众号
+id qq邮箱
+pw liushiyao99
+
+注册小程序专用邮箱
+xiaochengxu_oscar@163.com
+lsy198699
+申请小程序用的同样id1和pw
+AppID(小程序ID)	wx02c45290b818c749
+
+猪八戒
+id 手机
+pw lsy1986
+
+公司邮箱
+liushiyao_SPL@hotmail.com
+lsy198699
+
+wordpress自建网站
+域名 www.sportslinque.com
+注册 email+username:liushiyao_SPL@hotmail.com
+pw Liushiyao150
+pin：2018
+wordpress username:sportslinqueadmin
+pw:Godbless@2018
+cPanel编辑 
+username：adminSPL
+pw:spl@2018
+mailchimp注册
+id liushiyao_SPL@hotmail.com
+pw Lsy1986@
+apikey  e6c9085b710a5859cc221b68c145e713-us18
+jetpack插件
+id liushiyao_SPL@hotmail.com
+pw:Godbless@2018
+
+企业邮箱及密码
+EBrSJRGpdrjofQ5W
+
+unix 树莓派
+password spl
+
+百度云服务
+注册名：150手机号
+应用名称 智能学习
+AppId 11490881
+API Key F71KNTiDI9xd1vYP6auQqVdY
+SecretKey wGFuwiODdftiDKHLTvUfbEbZkMIBFk5U
+
+github 
+id:oscarliusy
+repositories: oscar_from_Xinjiang
+
+tulin机器人
+注册 手机号，qq邮箱，lsy1986
+apikey：6d37d30b4e1244b0b486594b5512b030
+接口地址：http://openapi.tuling123.com/openapi/api/v2
+
+树莓派上的git密码 12345
+
+科大讯飞注册
+150手机
+qq邮箱
+pw：lsy1986
+施伯麟语音_windows
+appid:5b430e77
+语音听写SPL 类型 webapi
+appid： 5b615399
+语音听写
+api_key:77deb75355ce9ff30ac245f082e1b910
+在线语音合成
+674c93e5fd9a7bd098a2c7757b229c6a
+
+翻墙
+https://github.com/GavinPayne/setup-ipsec-vpn/blob/master/docs/clients-zh.md#windows
+Server IP: gavinpayne.cn
+
+IPsec PSK: GavinPayne
+
+Username: Alina
+
+Password: Alina
+
+阿里云使用支付宝登录
+wow_oscar
+
+twiter
+Liu SY
+liushiyao99
+qq邮箱注册
+
+facebook
+150注册
+oscar liu
+lsy1986
+
+youtube
+qq邮箱注册
+oscar liu
+lsy198699
+
+centOS
+root pw: liushiyao
+用户   oscar
+用户pw lsy1986
+
+office
+注册邮箱：qq
+pw：lsy198699
+id: Liu Shiyao
+
+Orical
+qq邮箱注册
+pw Lsy198699
+MD5: 2093a8d1cc66224b135d03c6883a17cb
+
+mysql root pw
+123456
+user root
+123456
+
+linux下的mariadb
+user：root
+pw：123456
+
+wampserver下的phpMyAdmin
+root@localhost
+123456
+
+wifi
+pw：eftdrg123...
+
+公司wifi
+360WiFi-SPL
+spl@851013
+
+steam
+注册邮箱：qq
+id qq号
+密码 lsy198699
+
+vpn
+Server IP: gavinpayne.cn
+
+IPsec PSK: GavinPayne
+
+Username: Alina
+
+Password: Alina
+
+chrome
+qq邮箱
+lsy198699
+
+processOn 做图标的
+qq邮箱
+R6FafAjSwtvMZXk
+
+百度
+狼来了请问饿
+lsy1986
+
+易订货
+id 15072349260
+pw 123456
+qq邮箱
+
+12306
+150手机
+lsy198699
+
+vm虚拟机
+host：oscar.com
+rootpw 123456
+user:oscar
+pw:111111
+
+邮政投诉
+http://sswz.spb.gov.cn
+
+钉钉
+id:150手机号
+pw:198699
+
+亚马逊
+注册邮箱:qq
+注册密码:SPL@1234
+账户名:oscarliusy
+
+腾讯云
+注册邮箱:qq
+注册密码:spl@1234
+www.sportslinque.tt
+云服务器 ubuntu190118
+密码:v7MjiagNHRF
+
+阿里云
+用户名:oscarliusy
+密码:spl@1234
+ip
+39.96.195.31(公)
+172.17.194.157(私有)
+pw:SPL@1234
+远程登录密码:123456
+新建用户 oscar
+密码123456
+
+小米账号 2156205941
+pw:lsy198699
+
+暴雪通行证
+qq邮箱
+lsy198699
+
+华为云
+注册手机 150
+账号名:sploscar
+pw:lsy1986
+

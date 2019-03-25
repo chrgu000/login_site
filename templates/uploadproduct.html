@@ -1,0 +1,53 @@
+{% extends 'login/base.html' %}
+{% block title %}批量上传{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="col-md-6 col-md-offset-3">
+          <form class='form-uploadfiles' action="." method="post" enctype="multipart/form-data">
+
+              {% if message %}
+                  <div class="alert alert-warning">{{ message }}</div>
+              {% endif %}
+
+              {% csrf_token %}
+              <h1>上传产品测试</h1>
+              上传人员:<input type="text" name="uploaduser"></br>
+              上传时间:<input type="date" name="date"></br>
+              选择上传文件:<input type="file" name="files"></br>
+              <button type="reset" class="btn btn-default pull-left">重置</button>
+              <button type="submit" class="btn btn-primary pull-right">提交</button>
+          </form>
+        </div>
+    </div> <!-- /container -->
+    <div class="container">
+    {% for p in uploadproducts %}
+    {% if forloop.first %}
+    <table class="table table-striped">
+        <tr>
+            <td width=100 align=center>英文名称</td>
+            <td width=100 align=center>时间编号</td>
+            <td width=300 align=center>唯一识别码</td>
+            <td width=100 align=center>中文详细描述</td>
+            <td width=100 align=center>库存数量</td>
+            <td width=100 align=center>进货价格</td>
+            <td width=100 align=center>销售价格</td>
+            <td width=100 align=center>库存位置</td>
+            <td width=100 align=center>销售状态</td></tr>
+    {% endif%}
+            <td><a href='{% url "detail-url" p.id%}'>{{p.nickname}}</a></td>
+            <td>{{p.adate}}</td>
+            <td>{{p.uniqueid}}</td>
+            <td>{{p.description}}</td>
+            <td>{{p.count}}</td>
+            <td>{{p.purchase_price}}</td>
+            <td>{{p.sale_price}}</td>
+            <td>{{p.warehouse}}</td>
+            <td>{{p.can_sale | yesno:"可销售,不可销售"}}</td></tr>
+    {% if forloop.last %}
+    </table>
+    {% endif%}
+    {% empty%}
+    <h3>还没有上传文件</h3>
+    {% endfor %}
+    </div>
+{% endblock %}

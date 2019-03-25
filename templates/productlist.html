@@ -1,0 +1,118 @@
+{% extends 'login/base.html' %}
+{% block title %}物料库存表{% endblock %}
+{% block content %}
+<div class="container" style="margin-left:100px;">
+    {% csrf_token %}
+     <div style="margin-top: 30px;">
+         <form method="get" action="." class="form-search" style="height:50px;">
+             <input type="search" placeholder="按 sku\childASIN\title\description 搜索" name="q" style="height:35px;width:300px;">
+             <button type="reset">重置</button>
+             <button type="submit" >排序或搜索</button></br>
+             
+             <span>这里放着汇率,等待修改汇率</span></br>
+         
+             <input type="radio" checked="checked" name="order" value="Positive">正序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="order" value="Reverse">倒序</br>
+         
+             <input type="radio" checked="checked" name="specify" value="id">按编号排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="purchasePrice">按Purchase Price排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="dhlShippingFee">按DHL Shipping Fee排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="shrinkage">按Shrinkage排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="amazonSalePrice">按Amazon Sale Price排序</br>
+             <input type="radio" name="specify" value="margin">按Margin排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="marginRate">按MarginRate排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="productCostPercentage">按Product Cost Percentage排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="description">按Description排序</br>
+
+         </form>
+    </div>
+
+    <div style="margin-top:100px">
+        {% for p in producttemps %}
+            {% if forloop.first %}
+            <table class="table table-striped" >
+                <tr>
+                    <th>Code</th>
+                    <th>Site</th>
+                    <th>Image</th>
+                    <th>SKU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    <th>(Child)ASIN</th>
+                    <th >Title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    <th>Description</th>
+                    <th>Purchase Price(￥)</th>
+                    <th>DHL Shipping Fee(￥)</th>
+                    <th>Package Fee(￥)</th>
+                    <th>OP Fee(￥)</th>
+                    <th>Currency</th>
+                    <th>FBA Fulfillment Fee($)</th>
+                    <th>Shrinkage($)</th>
+                    <th>AD Cost</th>
+                    <th>Amazon Referral Fee(%)</th>
+                    <th>Payoneer Service Fee(%)</th>
+                    <th>Amazon Sale Price($)</th>
+                    <th>MARGIN($)</th>
+                    <th>MARGIN Rate(%)</th>
+                    <th>Product Cost Percentage(%)</th>
+                    
+
+                </tr>
+            {% endif %}
+            <tr>
+                <td>{{p.id}}</td>
+                <td>{{p.site}}</td>
+                <td><img src='{{p.image.url}}' height="50" ></td>
+                <td><a href='{% url "productDetail-url" p.id %}'>{{p.sku}}</td>
+                <td>{{p.childAsin}}</td>
+                <td>{{p.title}}</td>
+                <td>{{p.description}}</td>
+                <td>{{p.purchasePrice}}</td>
+                <td>{{p.dhlShippingFee}}</td>
+                <td>{{p.packageFee}}</td>
+                <td>{{p.opFee}}</td>
+                <td>{{p.currency}}</td>
+                <td>{{p.fbaFullfillmentFee}}</td>
+                <td>{{p.shrinkage}}</td>
+                <td>{{p.adcost}}</td>
+                <td>{{p.amazonReferralFee}}</td>
+                <td>{{p.payoneerServiceFee}}</td>
+                <td>{{p.amazonSalePrice}}</td>
+                <td>{{p.margin}}</td>
+                <td>{{p.marginRate}}</td>
+                <td>{{p.productCostPercentage}}</td>
+                
+            </tr>
+            {% if forloop.last %}
+            </table>
+            {% endif %}
+            {% empty %}
+            <h3>还没有添加产品信息,请点击增加产品</h3><!--这里可以把后几个字变成超链接,到添加页面-->
+        {% endfor %}
+    </div>
+<nav aria-label="Page navigation">
+  <ul class="pagination">
+
+    {% if inventorymaterials.has_previous %}
+        <li><a href="?page={{ inventorymaterials.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+    {% else %}
+            <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+    {% endif %}    
+
+    {% for i in pageRange %}
+         {% if current_num == i %}
+          <li class="active"><a href="?page={{ i }}">{{ i }}</a></li>
+
+         {% else %}
+          <li><a href="?page={{ i }}">{{ i }}</a></li>
+         {% endif %}
+    {% endfor %}
+
+
+    <li>
+      <a href="#" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+</div>
+{% endblock %}

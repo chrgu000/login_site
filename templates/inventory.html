@@ -1,16 +1,28 @@
 {% extends 'login/base.html' %}
 
 {% block title %}库存表{% endblock %}
+
 {% block content %}
+    {% csrf_token %}
     <div class="container">
-        <div style="margin-top: 30px;margin-right: 830px;">
-            <form method="get" action="/search/" class="form-search" style="height:50px;">
-                {% csrf_token %}
+        <div style="margin-top: 30px">
+            <!-- <form method="get" action="/search/" class="form-search" style="height:50px;"> -->
+            <form method="get" action="." class="form-search" style="height:50px;">
+
                 <input type="search" placeholder="按名称或描述词搜索" name="q" style="height:35px;width:200px;">
-                <button type="reset" class="btn btn-default pull-left">重置</button>
-                <button type="submit" class="btn btn-primary pull-right">提交</button>
+
+                <button type="reset" >重置</button>
+                <button type="submit" >搜索或排序</button></br>
+                
+                <input type="radio" checked="checked" name="order" value="Positive">正序
+                <input type="radio" name="order" value="Reverse">倒序</br>
+                
+                <input type="radio" checked="checked" name="specify" value="id">按编号排序
+                <input type="radio" name="specify" value="count">按库存排序</br>
             </form>
         </div>
+
+    <div style="margin-top: 50px">
     {% for p in products %}
     {% if forloop.first %}
     <table class="table table-striped">
@@ -43,5 +55,33 @@
     {% empty%}
     <h3>还没有添加库存信息,请点击增加产品</h3>
     {% endfor %}
+    </div>
+
+<nav aria-label="Page navigation">
+  <ul class="pagination">
+
+    {% if products.has_previous %}
+        <li><a href="?page={{ products.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+    {% else %}
+            <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+    {% endif %}    
+
+    {% for i in pageRange %}
+         {% if current_num == i %}
+          <li class="active"><a href="?page={{ i }}">{{ i }}</a></li>
+
+         {% else %}
+          <li><a href="?page={{ i }}">{{ i }}</a></li>
+         {% endif %}
+    {% endfor %}
+
+
+    <li>
+      <a href="#" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
     </div> <!-- /container -->
 {% endblock %}

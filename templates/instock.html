@@ -1,0 +1,29 @@
+{% extends 'login/base.html' %}
+
+{% block title %}入库记录表{% endblock %}
+{% block content %}
+    <div class="container">
+        {% for instock in instocks %}
+            {% if forloop.first %}
+            <table class="table table-striped">
+                <tr>
+                    <td>编号</td>
+                    <td>入库人</td>
+                    <td>入库时间</td>
+                    <td>详细信息</td>
+                </tr>
+            {% endif %}
+                <tr>
+                    <td><a href='{% url "inStockDetail-url" instock.id %}'>{{instock.code}}</a></td>
+                    <td>{{instock.userInstock}}</td>
+                    <td>{{instock.c_time}}</td>
+                    <td>{{instock.description}}</td>
+                </tr>
+            {% if forloop.last %}
+            </table>
+            {% endif %}
+            {% empty %}
+            <h3>还没有添加入库信息</h3><!--这里可以把后几个字变成超链接,到添加页面-->
+        {% endfor %}
+    </div>
+{% endblock %}

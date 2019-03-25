@@ -1,0 +1,30 @@
+{% extends 'login/base.html' %}
+
+{% block title %}出库记录表{% endblock %}
+
+{% block content %}
+    <div class="container">
+        {% for outstock in outstocks %}
+            {% if forloop.first %}
+            <table class="table table-striped">
+                <tr>
+                    <td>编号</td>
+                    <td>出库人</td>
+                    <td>出库时间</td>
+                    <td>详细信息</td>
+                </tr>
+            {% endif %}
+                <tr>
+                    <td><a href='{% url "outStockDetail-url" outstock.id %}'>{{outstock.code}}</a></td>
+                    <td>{{outstock.userOutstock}}</td>
+                    <td>{{outstock.c_time}}</td>
+                    <td>{{outstock.description}}</td>
+                </tr>
+            {% if forloop.last %}
+            </table>
+            {% endif %}
+            {% empty %}
+            <h3>还没有添加出库信息</h3><!--这里可以把后几个字变成超链接,到添加页面-->
+        {% endfor %}
+    </div>
+{% endblock %}

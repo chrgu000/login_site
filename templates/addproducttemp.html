@@ -1,0 +1,154 @@
+{% extends 'login/base.html' %}
+{% block title %}新增产品项{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="col-md-9 col-md-offset-3">
+            <form name="addproducttempform" class="form-addproducttemp" action="." method="post" enctype="multipart/form-data">
+              {% if message %}
+                  <div class="alert alert-warning">{{ message }}</div>
+              {% endif %}
+              {% csrf_token %}
+                <h3>必填项目</h3>
+                <label for="user">创建人:</label>
+                <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
+                <label for="c_time">创建时间:</label>
+                <input for="c_time" type="date" name="c_time"/><br> 
+                
+                <label for="site">站点:</label>
+                <select name="site">
+                {% for s in sites%}
+                <option value={{s.name}}>{{s.name}}</option>
+                {% endfor %}
+                </select></br>
+                
+                <label for="sku">SKU:</label>
+                <input type="text" name="sku" style="width:300px;"/></br>
+                <label for="childasin">(Child)ASIN:</label>
+                <input type="text" name="childasin" /></br>
+                <label for="title">Title:</label>
+                <textarea type="text" name="title" style="width:300px;height:100px;"/></textarea></br>
+                <label for="description">中文备注:</label>
+                <input type="text" name="description" style="width:300px;"/></br>
+                <h3>选填项目(不填会影响公式计算)</h3>
+                <label for="purchaseprice">采购价格(rmb):</label>
+                <input type="text" name="purchaseprice" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="weight">包装重量(kg):</label>
+                <input type="text" name="weight" value="0.000" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="length">包装尺寸长(cm):</label>
+                <input type="text" name="length" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="width">包装尺寸宽(cm):</label>
+                <input type="text" name="width" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="height">包装尺寸高(cm):</label>
+                <input type="text" name="height" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="volumeweight">包装体积重(kg)</label>
+                <input type="text" name="volumeweight" value="0.000" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                
+                <label for="packagefee">物料费(rmb):</label>
+                <input type="text" name="packagefee" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="opfee">运营费(rmb):</label>
+                <input type="text" name="opfee" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="currency">汇率(us-chn):</label>
+                <input type="text" name="currency" value="6.50000" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="fbafee">FBA运费(dollar):</label>
+                <input type="text" name="fbafee" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="amazonfee">amazon平台费(%)</label>
+                <input type="text" name="amazonfee" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/>%</br>
+                <label for="payserfee">Payoneer服务费(%)</label>
+                <input type="text" name="payserfee" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/>%</br>
+                <label for="adcost">广告费(dollar):</label>
+                <input type="text" name="adcost" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                
+                <label for="amazonprice">售价(dollar):</label>
+                <input type="text" name="amazonprice" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="image">选择上传图片:</label>
+                <input type="file" name="image" ></br>
+                <p>其中,DHL运费,产品损耗,利润,利润率将根据数据自动算出,请提交后在产品页查看</p>
+              </br>
+              
+              <h3>必填项目</h3>
+              <label for="items">添加物料项:</label></br>
+                <div id="items" name="initems">
+                    <ol>
+                    <li>
+                        <input type="number" name="item" id="item1"/> <input type="button" class="getMatId" value="选择物料" id="1"/>
+                        <input type="number" name="itemamount"/>消耗数量&nbsp;&nbsp;<span id="p1"></span>
+                    </li>
+                    <li>
+                        <input type="number" name="item" id="item2"/><input type="button" class="getMatId" value="选择物料" id="2"/>
+                        <input type="number" name="itemamount"/>消耗数量&nbsp;&nbsp;<span id="p2"></span>
+                    </li>
+                    <li>
+                        <input type="number" name="item" id="item3"/><input type="button" class="getMatId" value="选择物料" id="3"/>
+                        <input type="number" name="itemamount"/>消耗数量&nbsp;&nbsp;<span id="p3"></span>
+                    </li>
+                    </ol>
+                </div>
+                <input type="button" id="additem" value="增加物料项" /></br>
+                </br>
+                <input type="submit" value="提交"/>
+                <input type="reset" value="清除"/>
+            </form>
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+    <p>.</p>
+        </div>
+    </div> <!-- /container -->
+
+{% endblock %}
+
+{% block on_ready %}
+
+<!-- var itemtext1 = '<li><input type="number" name="item" id="item'; -->
+<!-- var itemtext2 = '"/><input type="button" class="getMatId" value="选择物料" id="'; -->
+<!-- var itemtext3 = '"/><input type="number" name="itemamount"/>消耗数量</li>'; -->
+var itemtext1 = '<li><input type="number" name="item" id="item';
+var itemtext2 = '"/><input type="button" class="getMatId" value="选择物料" id="';
+var itemtext3 = '"/><input type="number" name="itemamount"/>消耗数量&nbsp;&nbsp;<span id="p';
+var itemtext4 = '"></span></li>';
+
+<!-- 将被打开的物料选择页 -->
+<!-- var path = 'http://192.168.0.3:8000/initem/'; -->
+var path = '/initem/?';
+var count = 3;
+
+$(document).ready(function(){
+    <!-- 增加新的入库项,并赋予动态的id和itemID -->
+    $("#additem").click(function(e){
+        count = count+1;
+        itemtext = itemtext1+count+itemtext2+count+itemtext3+count+itemtext4;
+        $("ol").append(itemtext);
+        console.log(itemtext);
+    });
+    
+    <!-- 动态的向新添加的项目添加事件 ,打开窗口,向子窗口传递itemid参数-->
+    $("ol").on("click",".getMatId",function(e){
+    var itemid = $(this).attr("id");
+    <!-- 打开新窗口,将itemid附加在url里向后传递 -->
+    newpath = path+itemid;
+    window.open(newpath,"弹出页面");
+    
+    });
+
+
+});
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+

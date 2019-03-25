@@ -1,0 +1,89 @@
+{% extends 'login/base.html' %}
+{% block title %}新增入库单{% endblock %}
+{% block content %}
+    <div class="container">
+        <!-- <div class="col-md-6 col-md-offset-3"> -->
+        <div>
+            <form name="instockaddform" class="form-instockadd" action="." method="post" enctype="multipart/form-data">
+              {% if message %}
+                  <div class="alert alert-warning">{{ message }}</div>
+              {% endif %}
+              
+              {% csrf_token %}
+              
+                <label for="code">入库编号:</label>
+                <input id="code" type="text" name="code"/></br>
+                <label for="c_time">入库时间:</label>
+                <input for="c_time" type="date" name="c_time"/><br> 
+                <label for="description">入库信息:</label>
+                <input for="description" type="text" name="description"/><br> 
+                <label for="user">入库人:</label>
+                <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
+
+                <label for="items">添加入库项:</label></br>
+
+                <div id="items" name="initems">
+                    <ol>
+                    <li>
+                        <input type="number" name="item" id="item1" /><input type="button" class="getMatId" value="选择物料" id="1" />
+                        <input type="number" name="itemamount"/>入库数量&nbsp;&nbsp;<span id="p1"></span>
+                    </li>
+                    <li>
+                        <input type="number" name="item" id="item2"/><input type="button" class="getMatId" value="选择物料" id="2"/>
+                        <input type="number" name="itemamount"/>入库数量&nbsp;&nbsp;<span id="p2"></span>
+                    </li>
+                    <li>
+                        <input type="number" name="item" id="item3"/><input type="button" class="getMatId" value="选择物料" id="3"/>
+                        <input type="number" name="itemamount"/>入库数量&nbsp;&nbsp;<span id="p3"></span>
+                    </li>
+                    </ol>
+                </div>
+                <input type="button" id="additem" value="增加入库项" /></br>
+                </br>
+                <input type="submit" value="提交"/>
+                <input type="reset" value="清除"/>
+            </form>
+        </div>
+    </div> <!-- /container -->
+{% endblock %}
+
+
+{% block on_ready %}
+<!-- 添加的入库项,为了添加id,分成了3份 -->
+<!-- var itemtext = '<li><input type="text" name="item" id="item"/><input type="button" class="getMatId" value="选择物料" id=""/><input type="text" name="itemamount"/>入库数量</li>'; -->
+var itemtext1 = '<li><input type="number" name="item" id="item';
+var itemtext2 = '"/><input type="button" class="getMatId" value="选择物料" id="';
+var itemtext3 = '"/><input type="number" name="itemamount"/>入库数量&nbsp;&nbsp;<span id="p';
+var itemtext4 = '"></span></li>';
+
+
+
+
+<!-- 将被打开的物料选择页 -->
+<!-- var path = 'http://192.168.0.3:8000/initem/'; -->
+var path = '/initem/?';
+var count = 3;
+
+$(document).ready(function(){
+    <!-- 增加新的入库项,并赋予动态的id和itemID -->
+    $("#additem").click(function(e){
+        count = count+1;
+        itemtext = itemtext1+count+itemtext2+count+itemtext3+count+itemtext4;
+        $("ol").append(itemtext);
+        console.log(itemtext);
+    });
+    
+    <!-- 动态的向新添加的项目添加事件 ,打开窗口,向子窗口传递itemid参数-->
+    $("ol").on("click",".getMatId",function(e){
+    var itemid = $(this).attr("id");
+    <!-- 打开新窗口,将itemid附加在url里向后传递 -->
+    newpath = path+itemid;
+    window.open(newpath,"弹出页面");
+    
+    });
+
+});
+
+
+{% endblock %}
+
