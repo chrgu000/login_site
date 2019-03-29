@@ -86,8 +86,8 @@ class Uploadfiles(models.Model):
         return self.file_name
     
     class Meta:
-        verbose_name = "上传文件管理"
-        verbose_name_plural = "上传文件管理"
+        verbose_name = "上传文件历史记录"
+        verbose_name_plural = "上传文件历史记录"
 
 
 class Material(models.Model):
@@ -187,6 +187,9 @@ class ProductTemp(models.Model):
     
     def __unicode__(self):
         return self.sku
+    class Meta:
+        verbose_name = "产品"
+        verbose_name_plural = "产品"
 
 class ProductMaterial(models.Model):
     # 测试产品物料关系表
@@ -225,6 +228,17 @@ class OutItem(models.Model):
     class Meta:
         verbose_name = "出库项"
         verbose_name_plural = "出库项"
+
+class AutoLog(models.Model):
+    date = models.CharField(verbose_name=_("操作时间"),max_length=200,blank=True,null=True)
+    user = models.ForeignKey(User,verbose_name=_("用户名"),blank=True,null=True)
+    act = models.CharField(verbose_name=_("操作行为"),max_length=200,blank=True,null=True)
+    
+    def __unicode__(self):
+        return self.date
+    class Meta:
+        verbose_name = "日志"
+        verbose_name_plural = "日志"
 
 
 

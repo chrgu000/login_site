@@ -1,0 +1,10 @@
+{% extends 'login/base.html' %}
+{% block title %}出错啦{% endblock %}
+{% block content %}
+        {% csrf_token %}
+        
+        {% if error_msg %}
+          <h3 align="center">{{error_msg}}</h3>
+        {% endif %}
+
+{% endblock %}

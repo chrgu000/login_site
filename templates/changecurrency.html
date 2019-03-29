@@ -1,0 +1,29 @@
+{% extends 'login/base.html' %}
+
+{% block title %}修改汇率{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="col-md-6 col-md-offset-3">
+          <form class='form-changecurrency' action="." method="post" enctype="multipart/form-data">
+              {% if message %}
+                  <div class="alert alert-warning">{{ message }}</div>
+              {% endif %}
+              
+              {% csrf_token %}
+                <label for="user">操作人:</label>
+                <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
+                <label for="site">站点:</label>
+                <select name="site">
+                {% for s in sites %}
+                <option value={{s.name}}>{{s.name}}</option>
+                {% endfor %}
+                </select></br>
+                <label for="currency">汇率设定:</label></br>
+                <p>1外币 = <input type="text" name="currency" value="6.50000" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/>RMB</p>
+              <button type="reset" class="btn btn-default pull-left">重置</button>
+              <button type="submit" class="btn btn-primary pull-right">提交</button>
+          </form>
+        </div>
+    </div> 
+{% endblock %}

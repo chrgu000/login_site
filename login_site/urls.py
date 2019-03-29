@@ -60,6 +60,8 @@ urlpatterns = [
     url(r'^uploadoutstock/',views.Uploadoutstock.as_view(),name='out_upload'),
     
     url(r'^uploadnewpro/',views.Uploadnewpro.as_view(),name='upload_newpro'),
+    url(r'^changecurrency/',views.Changecurrency.as_view(),name='change_currency'),
+    url(r'^error/',views.error),
 
 ]
 

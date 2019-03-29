@@ -16,11 +16,7 @@
                 <label for="description">物料信息:</label>
                  <input id="description" type="text" name="description"/></br>
                 <label for="user">入库人:</label>
-                 <select name="user">
-                 {% for u in users %}
-                 <option value={{u.name}}>{{u.name}}</option>
-                 {% endfor %}
-                 </select>
+                <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
                 选择上传图片:<input type="file" name="image"></br>
 
 
