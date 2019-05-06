@@ -1,5 +1,5 @@
 {% extends 'login/base.html' %}
-{% block title %}产品批量出库{% endblock %}
+{% block title %}产品批量修改{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -11,21 +11,20 @@
               {% endif %}
 
               {% csrf_token %}
-              <h1>批量出库产品</h1>
-              <label for="code">出库编号:</label>
-              <input id="code" type="text" name="code"/></br>
-              <label for="c_time">出库时间:</label>
-              <input for="c_time" type="date" name="c_time"/><br> 
-              <label for="description">出库信息:</label>
-              <input for="description" type="text" name="description"/><br> 
-              <label for="user">出库人:</label>
-              <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
-              <p></p>
+              <h1>批量修改产品信息</h1>
+
+              <label for="c_time">修改时间:</label>
+              <input for="c_time" type="text" name="c_time" value="{{date}}" readonly="readonly"/><br> 
+              <label for="user">修改人:</label>
+              <input type="text" name="user" value="{{user}}" readonly="readonly"/></br>
+
+              <p>注意:excel中,site不可修改,sku为检索依据,不需要修改的属性请清空.</p>
               选择上传文件:<input type="file" name="files"></br>
               <button type="reset" class="btn btn-default pull-left">重置</button>
               <button type="submit" class="btn btn-primary pull-right">提交</button>
           </form>
         </div>
-
 </div>
+
+
 {% endblock %}

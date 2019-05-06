@@ -1,0 +1,41 @@
+{% extends 'login/base.html' %}
+{% block title %}预出库记录表{% endblock %}
+{% block css %}
+<style>
+th {font-size:20px;}
+</style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        {% for p in preoutstocks %}
+            {% if forloop.first %}
+            <table class="table table-striped">
+                <tr>
+                    <th>id</th>
+                    <th>编号</th>
+                    <th>创建/修改时间</th>
+                    <th>详细信息</th>
+                    <th>操作人</th>
+                    <th>总重量</th>
+                    <th>总体积</th>
+                    <th>总运费</th>
+                </tr>
+            {% endif %}
+                <tr>
+                    <td>{{p.id}}</td>
+                    <td><a href='{% url "pre_outstock_detail" p.id %}'>{{p.pcode}}</a></td>
+                    <td>{{p.ptime}}</td>
+                    <td>{{p.pdescription}}</td>
+                    <td>{{p.user}}</td>
+                    <td>{{p.total_weight}}<span>kg</span></td>
+                    <td>{{p.total_volume}}<span>m<sup>3</sup></span></td>
+                    <td><span>¥</span>{{p.total_freightfee}}</td>
+                </tr>
+            {% if forloop.last %}
+            </table>
+            {% endif %}
+            {% empty %}
+            <h3>还没有添加预出库信息</h3>
+        {% endfor %}
+    </div>
+{% endblock %}

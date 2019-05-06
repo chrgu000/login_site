@@ -1,17 +1,24 @@
 {% extends 'login/base.html' %}
 
 {% block title %}出库记录表{% endblock %}
-
+{% block css %}
+<style>
+th {font-size:20px;}
+</style>
+{% endblock %}
 {% block content %}
     <div class="container">
         {% for outstock in outstocks %}
             {% if forloop.first %}
             <table class="table table-striped">
                 <tr>
-                    <td>编号</td>
-                    <td>出库人</td>
-                    <td>出库时间</td>
-                    <td>详细信息</td>
+                    <th>编号</th>
+                    <th>出库人</th>
+                    <th>出库时间</th>
+                    <th>详细信息</th>
+                    <th>总重量</th>
+                    <th>总体积</th>
+                    <th>总运费</th>
                 </tr>
             {% endif %}
                 <tr>
@@ -19,6 +26,9 @@
                     <td>{{outstock.userOutstock}}</td>
                     <td>{{outstock.c_time}}</td>
                     <td>{{outstock.description}}</td>
+                    <td>{{outstock.total_weight}}<span>kg</span></td>
+                    <td>{{outstock.total_volume}}<span>m<sup>3</sup></span></td>
+                    <td><span>¥</span>{{outstock.total_freightfee}}</td>
                 </tr>
             {% if forloop.last %}
             </table>

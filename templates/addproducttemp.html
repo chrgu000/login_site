@@ -3,7 +3,7 @@
 
 {% block content %}
     <div class="container">
-        <div class="col-md-9 col-md-offset-3">
+        <div class="col-md-7 col-md-offset-2">
             <form name="addproducttempform" class="form-addproducttemp" action="." method="post" enctype="multipart/form-data">
               {% if message %}
                   <div class="alert alert-warning">{{ message }}</div>
@@ -30,7 +30,7 @@
                 <textarea type="text" name="title" style="width:300px;height:100px;"/></textarea></br>
                 <label for="description">中文备注:</label>
                 <input type="text" name="description" style="width:300px;"/></br>
-                <h3>选填项目(不填会影响公式计算)</h3>
+                <h3>选填项目(不填会影响公式计算,实际运费也无法生效)</h3>
                 <label for="purchaseprice">采购价格(rmb):</label>
                 <input type="text" name="purchaseprice" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
                 <label for="weight">包装重量(kg):</label>
@@ -50,6 +50,8 @@
                 <input type="text" name="opfee" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
                 <label for="currency">汇率(us-chn):</label>
                 <input type="text" name="currency" value="6.50000" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="freightfee">实际运费(dollar):</label>
+                <input type="text" name="freightfee" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/><span>不填则以公式DHL运费为准</span></br>
                 <label for="fbafee">FBA运费(dollar):</label>
                 <input type="text" name="fbafee" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
                 <label for="amazonfee">amazon平台费(%)</label>
@@ -61,6 +63,8 @@
                 
                 <label for="amazonprice">售价(dollar):</label>
                 <input type="text" name="amazonprice" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
+                <label for="tagpath">标签路径:</label>
+                <input type="text" name="tagpath" value="C:\" /><span>请黏贴标签文件所在文件夹地址</span></br>
                 <label for="image">选择上传图片:</label>
                 <input type="file" name="image" ></br>
                 <p>其中,DHL运费,产品损耗,利润,利润率将根据数据自动算出,请提交后在产品页查看</p>

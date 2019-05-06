@@ -33,7 +33,8 @@ class AutoLogAdmin(admin.ModelAdmin):
         # return self.readonly_fields
     # readonly_fields = ('date',)
 
-
+class PreOutstockAdmin(admin.ModelAdmin):
+    list_display = ("pcode","ptime","pdescription")
 
 admin.site.register(models.User,UserAdmin)
 # admin.site.register(models.Warehouse,WarehouseAdmin)
@@ -45,5 +46,6 @@ admin.site.register(models.OutStock)
 admin.site.register(models.Site)
 admin.site.register(models.InStock)
 admin.site.register(models.AutoLog)
+admin.site.register(models.PreOutstock,PreOutstockAdmin)
 
 admin.site.site_url = '/index/'#修改admin中的viewsite的默认值

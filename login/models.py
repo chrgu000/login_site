@@ -107,6 +107,7 @@ class InventoryMaterial(models.Model):
     uniqueId =  models.CharField(verbose_name=_("唯一识别码"),max_length=100,blank=True,null=True)
     userPurchase = models.ForeignKey(User,verbose_name=_("采购人员"),blank=True,null=True)
     image = models.ImageField(_("图片"),upload_to='photos',blank=True,null=True,default="/photos/americanfootball.jpg")
+    price = models.DecimalField(verbose_name=_("采购价(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
 
     def __unicode__(self):
         return self.uniqueId
@@ -182,8 +183,9 @@ class ProductTemp(models.Model):
     description = models.TextField(_("中文备注"),max_length=200,blank=True,null=True)
     creater = models.ForeignKey(User,blank=True,null=True,verbose_name=_("创建人员"))
     c_time = models.CharField(verbose_name=_("创建时间"),max_length=50,blank=True,null=True)
-    
     adcost = models.DecimalField(verbose_name=_("广告费(dollar)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0) 
+    freightFee = models.DecimalField(verbose_name=_("实际运费(%)"),max_digits=6,decimal_places=2,blank=True,null=True,default=0)
+    tagpath = models.CharField(verbose_name=_("标签地址"),max_length=150,blank=True,null=True)
     
     def __unicode__(self):
         return self.sku
@@ -204,9 +206,10 @@ class OutStock(models.Model):
     c_time = models.CharField(verbose_name=_("入库时间"),max_length=50)
     description = models.TextField(_("出库信息"),max_length=200,blank=True,null=True)
     userOutstock = models.ForeignKey(User,blank=True,null=True,verbose_name=_("出库人员"))
+    total_weight = models.DecimalField(verbose_name=_("总重量(kg)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
+    total_volume = models.DecimalField(verbose_name=_("总体积(m3)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
+    total_freightfee = models.DecimalField(verbose_name=_("总运费(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
 
-    
-    
     def __unicode__(self):
         return self.description
     class Meta:
@@ -215,13 +218,12 @@ class OutStock(models.Model):
 
 class OutItem(models.Model):
     master = models.ForeignKey(OutStock,verbose_name=_("出库表"),on_delete=models.CASCADE)
-    
+    site = models.CharField(verbose_name=_("站点"),max_length=30,blank=True,null=True)
     productName = models.ForeignKey(ProductTemp,verbose_name=_("产品名称"))
-    siteinput = models.CharField(verbose_name=_("站点"),max_length=50,blank=True,null=True)
     amountOut =  models.PositiveIntegerField(_("出库数量"),blank=True,null=True)
-    dhlshippingfeeInput = models.DecimalField(_("dhl海运费"),blank=True,null=True,max_digits=6,decimal_places=2)
-    totalfee = models.DecimalField(_("运费合计"),blank=True,null=True,max_digits=8,decimal_places=2)
-    
+    freightfee = models.DecimalField(_("运费"),blank=True,null=True,max_digits=6,decimal_places=2)
+    weight = models.DecimalField(_("包装重量(kg)"),blank=True,null=True,max_digits=6,decimal_places=3)
+    volume = models.DecimalField(_("包装体积(m3)"),blank=True,null=True,max_digits=6,decimal_places=3)
     def __unicode__(self):
         return self.prodcutName
 
@@ -239,8 +241,45 @@ class AutoLog(models.Model):
     class Meta:
         verbose_name = "日志"
         verbose_name_plural = "日志"
+        
+class ErrorLog(models.Model):
+    date = models.CharField(verbose_name=_("时间"),max_length=200,blank=True,null=True)
+    user = models.ForeignKey(User,verbose_name=_("用户名"),blank=True,null=True)
+    message = models.CharField(verbose_name=_("报错信息"),max_length=200,blank=True,null=True)
+    page = models.CharField(verbose_name=_("页面"),max_length=200,blank=True,null=True)
+    
+    def __unicode__(self):
+        return self.date
+    class Meta:
+        verbose_name = "报错日志"
+        verbose_name_plural = "报错日志"
 
+class PreOutstock(models.Model):
+    pcode = models.CharField(verbose_name=_("预出库编号"),max_length=50)
+    ptime = models.CharField(verbose_name=_("编辑时间"),max_length=50)
+    pdescription = models.TextField(_("备注信息"),max_length=200,blank=True,null=True)
+    user = models.ForeignKey(User,blank=True,null=True,verbose_name=_("操作人员"))
+    total_weight = models.DecimalField(verbose_name=_("总重量(kg)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
+    total_volume = models.DecimalField(verbose_name=_("总体积(m3)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
+    total_freightfee = models.DecimalField(verbose_name=_("总运费(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
 
+    def __unicode__(self):
+        return self.pcode
+    class Meta:
+        verbose_name = "预出库表"
+        verbose_name_plural = "预出库表"
+
+class PreOutitem(models.Model):
+    master = models.ForeignKey(PreOutstock,verbose_name=_("预出库表"),on_delete=models.CASCADE)
+    productName = models.ForeignKey(ProductTemp,verbose_name=_("产品名称"))
+    amount =  models.PositiveIntegerField(_("预出库数量"),blank=True,null=True)
+
+    def __unicode__(self):
+        return self.prodcutName
+
+    class Meta:
+        verbose_name = "预出库项"
+        verbose_name_plural = "预出库项"
 
 
 

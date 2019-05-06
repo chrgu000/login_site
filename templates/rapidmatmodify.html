@@ -29,19 +29,25 @@
                     <th>编号</th>
                     <th>唯一识别码</th>
                     <th>库存数量</th>
+                    <th></th>
                     <th>详细信息</th>
                     <th>采购人</th>
                     <th>采购价(rmb)</th>
+                    <th></th>
                     <th>物料图片</th>
                 </tr>
             {% endif %}
-                <td>{{im.id}}</td>
-                <td><a href='{% url "inventoryDetail-url" im.id %}'>{{im.uniqueId}}</td>
-                <td>{{im.amount}}</td>
-                <td>{{im.description}}</td>
-                <td>{{im.userPurchase}}</td>
-                <td>{{im.price}}</td>
-                <td><img src='{{im.image.url}}' height="50" ></td></tr>
+                <tr>
+                    <td id="{{im.id}}">{{im.id}}</td>
+                    <td><a href='{% url "inventoryDetail-url" im.id %}'>{{im.uniqueId}}</td>
+                    <td>{{im.amount}}</td>
+                    <td><button class="getAmount" value="Change" amount="{{im.amount}}"><span class="glyphicon glyphicon-cog"></span></button></td>
+                    <td>{{im.description}}</td>
+                    <td>{{im.userPurchase}}</td>
+                    <td>{{im.price}}</td>
+                    <td><button class="getPrice" value="Change" price="{{im.price}}"><span class="glyphicon glyphicon-cog"></span></button></td>
+                    <td><img src='{{im.image.url}}' height="50" ></td>
+                </tr>
             {% if forloop.last %}
             </table>
             {% endif %}
@@ -76,5 +82,74 @@
   </ul>
 </nav>
     </div>
+
+{% endblock %}
+{% block on_ready %}
+$(document).ready(function(){
+    var token = $('input[name=csrfmiddlewaretoken]').val();
+    var new_amount,new_price
+    var tag_in,tag_out
+    
+    
+
+    $("button.getAmount").click(function(e){
+        var amount = $(this).attr('amount');
+        var get_amount = prompt("请输入新的库存数量",amount);
+        var im_id = $(this).parent("td").parent("tr").find("td:eq(0)").html()
+        
+        $.ajax({
+            url:"/rapidmatmodify/",
+            type:"POST",
+            async:false,
+            data:{csrfmiddlewaretoken: token,"get_amount":get_amount,"tag_in":"m_amount","im_id":im_id},
+            success:function(data){
+                var data_objs=JSON.parse(data);
+                tag_out = data_objs["tag_out"]
+                new_amount = data_objs["new_amount"]
+            }
+        });
+        
+        if (tag_out == "wrong_type"){
+            alert("您输入的数据有误,请检查")
+        } 
+        else{
+            $("#"+im_id).parent("tr").find("td:eq(2)").html(new_amount).css("color","red");
+        }
+    });
+    
+    $("button.getPrice").click(function(e){
+        var price = $(this).attr('price');
+        var get_price = prompt("请输入新的采购价格",price);
+        var im_id = $(this).parent("td").parent("tr").find("td:eq(0)").html()
+        
+        $.ajax({
+            url:"/rapidmatmodify/",
+            type:"POST",
+            async:false,
+            data:{csrfmiddlewaretoken: token,"get_price":get_price,"tag_in":"m_price","im_id":im_id},
+            success:function(data){
+                var data_objs=JSON.parse(data);
+                tag_out = data_objs["tag_out"]
+                new_price = data_objs["new_price"]
+            }
+        });
+        
+        if (tag_out == "wrong_type"){
+            alert("您输入的数据有误,请检查")
+        } 
+        else{
+            $("#"+im_id).parent("tr").find("td:eq(6)").html(new_price).css("color","red");
+        }
+    });
+
+
+
+
+
+
+
+
+
+});
 
 {% endblock %}

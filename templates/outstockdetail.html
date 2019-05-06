@@ -3,17 +3,27 @@
 {% block title %}
     {{outstock.code | default:"找不到指定的对象"}}
 {% endblock %}
+{% block css %}
+<style>
+th {font-size:20px;}
+.tagupper {font-size:18px;}
 
+
+</style>
+
+{% endblock %}
 {% block content %}
     <div class="container" align=center>
-        <div class="col-md-4 col-md-offset-4">
+        <div class="col-md-4 col-md-offset-4 tagupper">
             {% if outstock %}
                 <table class="table table-striped">
-                <tr><td align=center>编号:{{outstock.code}}</td></tr>
-                <tr><td align=center>出库时间:{{outstock.c_time}}</td></tr>
-                <tr><td align=center>出库人:{{outstock.userOutstock}}</td></tr>
-                <tr><td align=center>详细信息:{{outstock.description}}</td></tr>
-                <tr><td align=center>运费合计:{{totaldhl}}</td></tr>
+                <tr><td align=center>编号:</td><td>{{outstock.code}}</td></tr>
+                <tr><td align=center>出库时间:</td><td>{{outstock.c_time}}</td></tr>
+                <tr><td align=center>出库人:</td><td>{{outstock.userOutstock}}</td></tr>
+                <tr><td align=center>详细信息:</td><td>{{outstock.description}}</td></tr>
+                <tr><td align=center>总重量:</td><td>{{outstock.total_weight}}<span>kg</span></td></tr>
+                <tr><td align=center>总体积:</td><td>{{outstock.total_volume}}<span>m<sup>3</sup></span></td></tr>
+                <tr><td align=center>总运费:</td><td><span>¥</span>{{outstock.total_freightfee}}</td></tr>
                 </table>
             {% else %}
             <h2>找不到指定的产品</h2>
@@ -25,19 +35,23 @@
                 {% if forloop.first %}
                 <table class="table table-striped">
                     <tr>
+                        <th>编号</th>
                         <th>站点</th>
                         <th>SKU</th>
                         <th>出库数量</th>
-                        <th>DHL Shipping Fee</th>
-                        <th>合计运费</th>
+                        <th>合计重量(kg)</th>
+                        <th>合计体积(m<sup>3</sup>)</th>
+                        <th>合计运费(¥)</th>
                     </tr>
                 {% endif %}
                     <tr>
-                        <td>{{ item.siteinput }}</td>
-                        <td>{{ item.productName }}</td>
-                        <td>{{ item.amountOut }}</td>
-                        <td>{{ item.dhlshippingfeeInput}}</td>
-                        <td>{{ item.totalfee}}</td>
+                        <td>{{item.id}}</td>
+                        <td>{{item.site }}</td>
+                        <td>{{item.productName }}</td>
+                        <td>{{item.amountOut }}</td>
+                        <td>{{item.weight}}</td>
+                        <td>{{item.volume}}</td>
+                        <td>{{item.freightfee}}</td>
                     </tr>
                 {% if forloop.last %}
                 </table>

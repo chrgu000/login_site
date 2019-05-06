@@ -1,0 +1,67 @@
+{% extends 'login/base.html' %}
+{% block title %}物料库存表{% endblock %}
+{% block content %}
+<div class="container">
+{% csrf_token %}
+     <div style="margin-top: 30px;">
+         <form method="get" action="." class="form-search" style="height:50px;">
+             <input type="search" placeholder="按 时间\页面\报错信息 搜索" name="q" style="height:35px;width:300px;">
+             <button type="reset">重置</button>
+             <button type="submit" >搜索</button></br>
+         </form>
+    </div>
+    <div style="margin-top:60px">
+        {% for e in errorlogs %}
+            {% if forloop.first %}
+            <table class="table table-striped" >
+                <tr>
+                    <th>编号</th>
+                    <th>时间</th>
+                    <th>页面</th>
+                    <th >报错信息</th>
+                    <th>操作人</th>
+                </tr>
+            {% endif %}
+            <tr>
+                <td>{{e.id}}</td>
+                <td>{{e.date}}</td>
+                <td>{{e.page}}</td>
+                <td>{{e.message}}</td>
+                <td>{{e.user}}</td>
+            </tr>
+            {% if forloop.last %}
+            </table>
+            {% endif %}
+            {% empty %}
+            <h3>还没有错误信息</h3>
+        {% endfor %}
+    </div>
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+
+        {% if errorlogs.has_previous %}
+            <li><a href="?page={{ errorlogs.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+        {% else %}
+                <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+        {% endif %}    
+
+        {% for i in pageRange %}
+             {% if current_num == i %}
+              <li class="active"><a href="?page={{ i }}">{{ i }}</a></li>
+
+             {% else %}
+              <li><a href="?page={{ i }}">{{ i }}</a></li>
+             {% endif %}
+        {% endfor %}
+
+
+        <li>
+          <a href="#" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+</div>
+
+{% endblock %}

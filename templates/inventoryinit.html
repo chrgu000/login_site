@@ -12,9 +12,11 @@
                 <label for="uniqueid">唯一识别码:</label>
                  <input id="uniqueid" type="text" name="uniqueid"/></br>
                 <label for="amount">库存数量:</label>
-                 <input id="amount" type="text" name="amount"/></br>
+                 <input id="amount" type="number" name="amount"/></br>
                 <label for="description">物料信息:</label>
                  <input id="description" type="text" name="description"/></br>
+                 <label for="price">采购价:</label>
+                 <input id="price" type="number" name="price" value="0.00"/></br>
                 <label for="user">入库人:</label>
                 <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
                 选择上传图片:<input type="file" name="image"></br>

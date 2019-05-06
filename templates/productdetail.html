@@ -5,54 +5,66 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container" align=center>
-        <div class="col-md-4 col-md-offset-4">
-        {% if producttemp %}
-            <table class="table table-striped">
-
-            <tr><td align=center>站点:{{producttemp.site}}</td></tr>
-            <tr><td align=center>SKU:{{producttemp.sku }}</td></tr>
-            <tr><td align=center>child ASIN:{{producttemp.childAsin}}</td></tr>
-            <tr><td align=center>Title:{{producttemp.title}}</td></tr>
-            <tr><td align=center>中文备注:{{producttemp.description}}</td></tr>
-            <tr><td align=center>创建人:{{producttemp.creater}}</td></tr>
-            <tr><td align=center>创建时间:{{producttemp.c_time}}</td></tr>
-            <tr><td align=center><img src='{{producttemp.image.url}}' height="100" ></td></tr>
-
-            <tr><td align=center>采购价格(rmb):{{producttemp.purchasePrice}}</td></tr>
-            <tr><td align=center>包装重量(kg):{{producttemp.weight}}</td></tr>
-            <tr><td align=center>包装尺寸长(cm):{{producttemp.length}}</td></tr>
-            <tr><td align=center>包装尺寸宽(cm):{{producttemp.width}}</td></tr>
-            <tr><td align=center>包装尺寸高(cm):{{producttemp.height}}</td></tr>
-            <tr><td align=center>包装体积重(kg):{{producttemp.volumeWeight}}</td></tr>
-            <tr><td align=center>DHL海运费(rmb):{{producttemp.dhlShippingFee}}</td></tr>
-            <tr><td align=center>物料费(rmb):{{producttemp.packageFee}}</td></tr>
-            <tr><td align=center>运营费(rmb):{{producttemp.opFee}}</td></tr>
-            <tr><td align=center>汇率(us-chn):{{producttemp.currency}}</td></tr>
-            <tr><td align=center>FBA运费(dollar):{{producttemp.fbaFullfillmentFee}}</td></tr>
-            <tr><td align=center>产品损耗(dollar):{{producttemp.shrinkage}}</td></tr>
-            <tr><td align=center>广告费(dollar):{{producttemp.adcost}}</td></tr>
-            <tr><td align=center>amazon平台费(%):{{producttemp.amazonReferralFee}}%</td></tr>
-            <tr><td align=center>Payoneer服务费(%):{{producttemp.payoneerServiceFee}}%</td></tr>
-            <tr><td align=center>售价(dollar):{{producttemp.amazonSalePrice}}</td></tr>
-            <tr><td align=center>利润(dollar):{{producttemp.margin}}</td></tr>
-            <tr><td align=center>利润率(%):{{producttemp.marginRate}}%</td></tr>
-            <tr><td align=center>产品成本(%):{{producttemp.productCostPercentage}}</td></tr>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 ">
+            {% if producttemp %}
+                <table class="table table-striped">
+                <tr><th>基本信息</th></tr>
+                <tr><td align=center>站点:{{producttemp.site}}</td></tr>
+                <tr><td align=center>SKU:{{producttemp.sku }}</td></tr>
+                <tr><td align=center>child ASIN:{{producttemp.childAsin}}</td></tr>
+                <tr><td align=center>Title:{{producttemp.title}}</td></tr>
+                <tr><td align=center>中文备注:{{producttemp.description}}</td></tr>
+                <tr><td align=center>创建人:{{producttemp.creater}}</td></tr>
+                <tr><td align=center>创建时间:{{producttemp.c_time}}</td></tr>
+                <tr><td align=center><img src='{{producttemp.image.url}}' height="100" ></td></tr>
+                </table>
+            </div>
+            <div class="col-md-4">
+                <table class="table table-striped">
+                <tr><th>详细信息</th></tr>
+                <tr><td align=center>采购价格(rmb):{{producttemp.purchasePrice}}</td></tr>
+                <tr><td align=center>包装重量(kg):{{producttemp.weight}}</td></tr>
+                <tr><td align=center>包装尺寸长(cm):{{producttemp.length}}</td></tr>
+                <tr><td align=center>包装尺寸宽(cm):{{producttemp.width}}</td></tr>
+                <tr><td align=center>包装尺寸高(cm):{{producttemp.height}}</td></tr>
+                <tr><td align=center>包装体积重(kg):{{producttemp.volumeWeight}}</td></tr>
+                <tr><td align=center>DHL海运费(rmb):{{producttemp.dhlShippingFee}}</td></tr>
+                <tr><td align=center>实际运费(rmb):{{producttemp.freightFee}}</td></tr>
+                <tr><td align=center>物料费(rmb):{{producttemp.packageFee}}</td></tr>
+                <tr><td align=center>运营费(rmb):{{producttemp.opFee}}</td></tr>
+                <tr><td align=center>汇率(us-chn):{{producttemp.currency}}</td></tr>
+                <tr><td align=center>FBA运费(dollar):{{producttemp.fbaFullfillmentFee}}</td></tr>
+                <tr><td align=center>产品损耗(dollar):{{producttemp.shrinkage}}</td></tr>
+                <tr><td align=center>广告费(dollar):{{producttemp.adcost}}</td></tr>
+                <tr><td align=center>amazon平台费(%):{{producttemp.amazonReferralFee}}%</td></tr>
+                <tr><td align=center>Payoneer服务费(%):{{producttemp.payoneerServiceFee}}%</td></tr>
+                <tr><td align=center>售价(dollar):{{producttemp.amazonSalePrice}}</td></tr>
+                <tr><td align=center>利润(dollar):{{producttemp.margin}}</td></tr>
+                <tr><td align=center>利润率(%):{{producttemp.marginRate}}%</td></tr>
+                <tr><td align=center>产品成本(%):{{producttemp.productCostPercentage}}</td></tr>
+                <tr><td align=center>标签地址:{{producttemp.tagpath}}</td></tr>
+                
+                </table>
+            {% else %}
+            <h2>找不到指定的产品</h2>
+            {% endif %}
+            </div>
             
-            </table>
-        {% else %}
-        <h2>找不到指定的产品</h2>
-        {% endif %}
-        {% if productindex %}
-            {% for p in productindex %}
-            <table class="table table-striped">
-                <tr>
-                <td>{{p.pmMaterial}}</td>
-                <td>{{p.pmAmount}}</td>
-                </tr>
-             {% endfor %}
-             </table>
-        {% endif %}
+            <div class="col-md-4">
+            <b>物料组成</b>
+            {% if productindex %}
+                {% for p in productindex %}
+                <table class="table table-striped">
+                    <tr>
+                    <td>{{p.pmMaterial}}</td>
+                    <td>{{p.pmAmount}}</td>
+                    </tr>
+                 {% endfor %}
+                 </table>
+            {% endif %}
+            </div>
         </div>
     </div> <!-- /container -->
 {% endblock %}

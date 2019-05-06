@@ -1,8 +1,74 @@
 {% extends "login/base.html" %}
 {% block title %}主页{% endblock %}
+{% block css %}
+<style>
+th {font-size:22px;}
+td {font-size:15px;}
+table.use {width:1000px;}
+</style>
+{% endblock %}
 {% block content %}
     {% if request.session.is_login %}
     <h1>你好,{{ request.session.user_name }}！欢迎回来！</h1>
+    </br></br></br></br>
+    <div class="container">
+        <div class="col-md-12 ">
+            <table class="table table-striped use ">
+                <tbody>
+                    <tr>
+                        <th colspan="7">物料与入库</th>                   
+                    </tr>
+                    <tr>
+                        <td><a href="/inventorymaterial/">物料库存表</a></td>
+                        <td><a href="/instock/">入库记录</a></td>
+                        <td><a href="/inventoryinit/">新增物料</a></td>
+                        <td><a href="/instockadd/">新增入库</a></td>
+                        <td><a href="/uploadmaterial/">批量新增/入库(excel)</a></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th colspan="7">产品与出库</th>                   
+                    </tr>
+                    <tr>
+                        <td><a href="/productlist/">产品表</a></td>
+                        <td><a href="/outstock/">出库记录</a></td>
+                        <td><a href="/preoutstocklist/">预出库记录</a></td>
+                        <td><a href="/addproducttemp/">新增产品</a></td>
+                        <td><a href="/uploadnewpro/">批量新增产品(excel)</a></td>
+                        <td><a href="/preoutstock/">新增预出库</a></td>
+                        <td><a href="/uploadoutstock/">批量出库(excel)</a></td>
+                    </tr>
+                    <tr>
+                        <th colspan="7">物料\产品修改</th>                   
+                    </tr>
+                    <tr>
+                        <td><a href="/changecurrency/">修改汇率</a></td>
+                        <td><a href="/rapidmatmodify/">快速修改物料</a></td>
+                        <td><a href="/uploadmatmodify/">批量修改物料(excel)</td>
+                        <td><a href="/rapidpromodify/">快速修改产品</a></td>
+                        <td><a href="/uploadpromodify/">批量修改产品(excel)</a></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th colspan="7">日志</th>                   
+                    </tr>
+                    <tr>
+                        <td><a href="/errorloglist/">错误日志</a></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    
     {% else %}
     <h1>你尚未登录，只能访问公开内容！</h1>
     {% endif %}

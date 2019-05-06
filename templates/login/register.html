@@ -38,11 +38,16 @@
                   {{ register_form.sex.label_tag }}
                   {{ register_form.sex }}
               </div>
+              <!-- <div class="form-group"> -->
+                    <!-- <h5>验证码:</h5> -->
+                  <!-- {{ register_form.captcha.errors }} -->
+                  <!-- {{ register_form.captcha.label_tag }} -->
+                  <!-- {{ register_form.captcha }} -->
+              <!-- </div> -->
               <div class="form-group">
-                    <h5>验证码:</h5>
-                  {{ register_form.captcha.errors }}
-                  {{ register_form.captcha.label_tag }}
-                  {{ register_form.captcha }}
+                    <h5>公司口令:</h5>
+                  {{ register_form.secret_code.label_tag }}
+                  {{ register_form.secret_code }}
               </div>
 
               <button type="reset" class="btn btn-default pull-left">重置</button>

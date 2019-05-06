@@ -57,12 +57,21 @@ urlpatterns = [
     url(r'^outstockadd/',views.Outstockadd.as_view(),name='outstock_add'),
     
     url(r'^outitem/',views.outItem),
+    url(r'^preoutitem/',views.preOutItem),
     url(r'^uploadoutstock/',views.Uploadoutstock.as_view(),name='out_upload'),
     
     url(r'^uploadnewpro/',views.Uploadnewpro.as_view(),name='upload_newpro'),
     url(r'^changecurrency/',views.Changecurrency.as_view(),name='change_currency'),
     url(r'^error/',views.error),
-
+    url(r'^errorloglist/',views.ErrorLogList.as_view(),name='error_log'),
+    url(r'^rapidmatmodify/',views.Rapidmatmodify.as_view(),name='rapid_matmodify'),
+    url(r'^uploadmatmodify/',views.Uploadmatmodify.as_view(),name='upload_matmodify'),
+    url(r'^rapidpromodify/',views.Rapidpromodify.as_view(),name='rapid_promodify'),
+    url(r'^uploadpromodify/',views.Uploadpromodify.as_view(),name='upload_promodify'),
+    url(r'^preoutstocklist/',views.preOutstockList,name='pre_outstock_list'),
+    url(r'^preoutstock/',views.PreOutstock.as_view(),name='pre_outstock'),
+    url(r'^preoutstockdetail/(\d+)$',views.PreOutstockDetail.as_view(),name='pre_outstock_detail'),
+    url(r'^pre2outstock/',views.pre2OutStock,name='pre_outstock'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

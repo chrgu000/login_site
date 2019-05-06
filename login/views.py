@@ -10,7 +10,7 @@ from django.db.models import Q,Sum
 from django.views.generic import View
 # from pure_pagination import Paginator,EmptyPage,PageNotAnInteger
 from django.core.paginator import Paginator,EmptyPage
-import time,os
+import time,os,json
 import xlrd,xlwt
 from random import randint
 import collections
@@ -63,6 +63,13 @@ def register(request):
             password2 = register_form.cleaned_data['password2']
             email = register_form.cleaned_data['email']
             sex = register_form.cleaned_data['sex']
+            code = register_form.cleaned_data['secret_code']
+            print code
+            if code != 'sportslinque':
+                error_msg ="请输入正确口令"
+                return render(request,'error.html',locals())
+            else:
+                pass
             if password1 != password2:  # 判断两次密码是否相同
                 message = "两次输入的密码不同！"
                 return render(request, 'login/register.html', locals())
@@ -311,20 +318,24 @@ class Inventoryinit(View):
         new_uid = request.POST.get('uniqueid')
         new_user = request.session.get('user_name','None')
         new_image = request.FILES.get('image',None)
+        new_price = request.POST.get('price')
+        pageNow = "新增物料页"
         
         if new_amount=="" or new_description=="" or new_uid=="":
-            error_msg ="请填写表单所有项目"
+            error_msg ="未完整填写表单"
+            addErrorlog(request,error_msg,pageNow)
             return render(request,'error.html',locals())
         else:
-            uid_exist = models.InventoryMaterial.objects.filter(uniqueId__contains = str(new_uid))
+            uid_exist = models.InventoryMaterial.objects.filter(uniqueId = str(new_uid))
             if uid_exist :
-                error_msg = "唯一识别码重复,请重新录入"
+                error_msg = new_uid+":唯一识别码重复"
+                addErrorlog(request,error_msg,pageNow)
                 return render(request,'error.html',locals())
             
             else:
                 user_obj = models.User.objects.get(name=new_user)
                 material_obj = models.InventoryMaterial.objects.create(amount=new_amount,description=new_description,\
-                            uniqueId=new_uid,userPurchase=user_obj,image=new_image)
+                            uniqueId=new_uid,userPurchase=user_obj,image=new_image,price=new_price)
                 
                 message = "录入成功"
 
@@ -339,7 +350,7 @@ class Inventoryinit(View):
 def inStock(request):
     if not request.session.get('is_login',None):
         return redirect('/index')
-    instocks = models.InStock.objects.all()
+    instocks = models.InStock.objects.all().order_by('-id')
     return render(request,"instock.html",locals())
 
 def inStockDetail(request,id):
@@ -373,16 +384,20 @@ class Instockadd(View):
         
         user = request.session.get('user_name','None')
         user_obj = models.User.objects.get(name=user)
+        
+        pageNow = "新增入库页"
         # if new_code is None or new_c_time is None or new_description is None:
         if new_code == "" or new_c_time == "" or new_description == "":
-            error_msg ="请填写表单所有项目"
+            error_msg ="未完整填写表单"
+            addErrorlog(request,error_msg,pageNow)
             return render(request,'error.html',locals())
         
         else:
             # 对code查重
             code_exist = models.InStock.objects.filter(code__contains = str(new_code))
             if code_exist:
-                error_msg = "入库编号重复,请重新录入"
+                error_msg = new_code+":入库编号重复"
+                addErrorlog(request,error_msg,pageNow)
                 return render(request,'error.html',locals())
             else:
                 instock_obj = models.InStock.objects.create(code=new_code,c_time=new_c_time,description=new_description,userInstock=user_obj)
@@ -436,15 +451,19 @@ class Uploadmaterial(View):
         new_code = request.POST.get('code')#对应modifyindex
         new_description = request.POST.get('description')
         File = request.FILES.get('files',None)
+        pageNow = "批量新增/入库页"
 
         if File is None or new_c_time == "" or new_code == "":
-            error_msg ="请完整填写表单"
+            
+            error_msg ="未完整填写表单"
+            addErrorlog(request,error_msg,pageNow)
             return render(request,'error.html',locals())
         else:
             # 对code查重
             code_exist = models.InStock.objects.filter(code__contains = str(new_code))
             if code_exist:
-                error_msg ="入库编号重复,请重新录入"
+                error_msg =new_code+":入库编号重复"
+                addErrorlog(request,error_msg,pageNow)
                 return render(request,'error.html',locals())
             
             else:
@@ -455,20 +474,31 @@ class Uploadmaterial(View):
                 _act = "批量上传/入库物料:"+new_code
                 models.AutoLog.objects.create(date=getTime(),user=user_obj,act=_act)
                 
-                type_excel = File.name.split('.')[-1]
+                type_excel = File.name.split('.')[-1] 
                 if 'xlsx'== type_excel:
                     upload_obj = models.Uploadfiles.objects.create(uploaduser=user_obj.name,date=new_c_time,file_name=File.name)
                     wb = xlrd.open_workbook(filename=None,file_contents=File.read())
                     table = wb.sheets()[0]
                     nrows = table.nrows
                     # print upload_obj
-                    
+                    rowValues = table.row_values(0)
+                    tag = rowValues[0]
+                    if tag != "instocktable":
+                        error_msg =str(File.name)+":未识别到入库/新建物料excel标准模板"
+                        addErrorlog(request,error_msg,pageNow)
+                        return render(request,'error.html',locals())
+                    else:
+                        pass
                     try:
                         with transaction.atomic():
                             for i in range(2,nrows):
                                 rowValues = table.row_values(i)
                                 uniq = rowValues[0]
                                 purchaseuser = rowValues[3]
+                                _price = rowValues[4]
+                                _amount = rowValues[2]
+                                get_price,tag_p = judgeinput(_price)
+                                get_amount,tag_a = judgeint(_amount)
                                 #user是外键,找出对应的对象
                                 uniq_obj = models.InventoryMaterial.objects.filter(uniqueId=uniq)
                                 # print uniq_obj
@@ -478,17 +508,16 @@ class Uploadmaterial(View):
                                     #用filter找出的对象无法存储,只好用get再取一次
                                     #uniq_get是物料对象
                                     uniq_get = models.InventoryMaterial.objects.get(uniqueId=uniq)
-                                    uniq_get.amount += abs(int(rowValues[2]))
+                                    uniq_get.amount += get_amount
                                     uniq_get.save()
                                 #如果不重复,说明是首次,创建新的物料对象
                                 else:
                                     userPur = models.User.objects.get(name = purchaseuser)
-                                    print user
+                                    
                                     models.InventoryMaterial.objects.create(uniqueId=rowValues[0],description=rowValues[1],
-                                        amount=rowValues[2],userPurchase=userPur)
+                                        amount=get_amount,userPurchase=userPur,price=get_price)
                                 material_obj = models.InventoryMaterial.objects.get(uniqueId=uniq)
-                                item_amount = abs(int(rowValues[2]))
-                                item_object = models.InItem.objects.create(master=instock_obj,materialName=material_obj,amountIn=item_amount)
+                                item_object = models.InItem.objects.create(master=instock_obj,materialName=material_obj,amountIn=get_amount)
                                 print "create initem object"
                             
                             message = "已完成上传,请在入库详情中查看."
@@ -496,10 +525,12 @@ class Uploadmaterial(View):
                             return render(request,'uploadmaterial.html',locals())
 
                     except Exception as e:
-                        error_msg ="出现错误"
+                        error_msg ="上传文件出现未定义错误"
+                        addErrorlog(request,error_msg,pageNow)
                         return render(request,'error.html',locals())
                 else:
-                    error_msg ="上传文件格式不是xlsx"
+                    error_msg =str(File.name)+":上传文件格式不是xlsx"
+                    addErrorlog(request,error_msg,pageNow)
                     return render(request,'error.html',locals())
 
 
@@ -599,6 +630,7 @@ def calMargin(purprice,dhlfee,packfee,opfee,currency,fbafee,shrinkage,adcost,ama
     amazonfee =float(amazonfee)
     payonfee = float(payonfee)
     amazonprice=float(amazonprice)
+    shrinkage = float(shrinkage)
     fee1 = amazonprice*(1-amazonfee/100)
     fee2 = fbafee+shrinkage+adcost
     fee3 = (fee1-fee2)*(1-payonfee/100)*currency
@@ -656,13 +688,19 @@ class Addproducttemp(View):
         new_image = request.FILES.get('image',None)
         site_obj = models.Site.objects.get(name=new_site)
         
+        freightfee = request.POST.get("freightfee")
+        tagpath = request.POST.get("tagpath")
+        pageNow = "新增产品页"
+        
         if new_sku =="" or new_childasin=="" or new_title=="" or new_description=="" or new_date=="":
-            error_msg ="请完成表单必填内容"
+            error_msg ="未完成表单必填内容"
+            addErrorlog(request,error_msg,pageNow)
             return render(request,'error.html',locals())
         else:
             sku_exist = models.ProductTemp.objects.filter(sku__contains =str(new_sku))
             if sku_exist:
-                error_msg ="sku重复,请重新录入"
+                error_msg =new_sku+":sku重复,无法录入"
+                addErrorlog(request,error_msg,pageNow)
                 return render(request,'error.html',locals())
             else:
                 if purchaseprice =="0.00" or weight=="0.000" or length=="0.00" or width=="0.00" or height=="0.00" or volumeweight=="0.000" or packagefee=="0.00"\
@@ -672,7 +710,7 @@ class Addproducttemp(View):
                             description=new_description,creater=user_obj,c_time=new_date,site=site_obj,purchasePrice=purchaseprice,weight=weight,\
                             length=length,width=width,height=height,volumeWeight=volumeweight,packageFee=packagefee,opFee=opfee,\
                             currency=currency,fbaFullfillmentFee=fbafee,amazonReferralFee=amazonfee,payoneerServiceFee=payserfee,\
-                            amazonSalePrice=amazonprice,adcost=adcost,image=new_image)
+                            amazonSalePrice=amazonprice,adcost=adcost,image=new_image,freightFee=freightfee,tagpath=tagpath)
                     items = request.POST.getlist('item')
                     itemamounts = request.POST.getlist('itemamount')
 
@@ -691,16 +729,28 @@ class Addproducttemp(View):
                     error_msg = "产品已创建,因备选内容不完整,故无法产生公式项"
                     return render(request,'error.html',locals())
                 else:
-                    _dhlfee = calDHLShippingFee(weight,length,width,height)
-                    _shrinkage = calShrinkage(purchaseprice,_dhlfee,packagefee,opfee,currency,fbafee,adcost)
-                    _margin,_marginRate = calMargin(purchaseprice,_dhlfee,packagefee,opfee,currency,fbafee,_shrinkage,adcost,amazonfee,payserfee,amazonprice)
-                    _productCostP = calProductCostPercentage(purchaseprice,amazonprice,currency)
-                    product_obj = models.ProductTemp.objects.create(sku = new_sku,childAsin=new_childasin,title=new_title,\
-                            description=new_description,creater=user_obj,c_time=new_date,site=site_obj,purchasePrice=purchaseprice,weight=weight,\
-                            length=length,width=width,height=height,volumeWeight=volumeweight,packageFee=packagefee,opFee=opfee,\
-                            currency=currency,fbaFullfillmentFee=fbafee,amazonReferralFee=amazonfee,payoneerServiceFee=payserfee,\
-                            amazonSalePrice=amazonprice,adcost=adcost,image=new_image,dhlShippingFee=_dhlfee,shrinkage=_shrinkage,\
-                            margin=_margin,marginRate=_marginRate,productCostPercentage=_productCostP)
+                    if not freightfee or freightfee == 0 or str(freightfee) == "0.00":
+                        _dhlfee = calDHLShippingFee(weight,length,width,height)
+                        _shrinkage = calShrinkage(purchaseprice,_dhlfee,packagefee,opfee,currency,fbafee,adcost)
+                        _margin,_marginRate = calMargin(purchaseprice,_dhlfee,packagefee,opfee,currency,fbafee,_shrinkage,adcost,amazonfee,payserfee,amazonprice)
+                        _productCostP = calProductCostPercentage(purchaseprice,amazonprice,currency)
+                        product_obj = models.ProductTemp.objects.create(sku = new_sku,childAsin=new_childasin,title=new_title,\
+                                description=new_description,creater=user_obj,c_time=new_date,site=site_obj,purchasePrice=purchaseprice,weight=weight,\
+                                length=length,width=width,height=height,volumeWeight=volumeweight,packageFee=packagefee,opFee=opfee,\
+                                currency=currency,fbaFullfillmentFee=fbafee,amazonReferralFee=amazonfee,payoneerServiceFee=payserfee,\
+                                amazonSalePrice=amazonprice,adcost=adcost,image=new_image,dhlShippingFee=_dhlfee,shrinkage=_shrinkage,\
+                                margin=_margin,marginRate=_marginRate,productCostPercentage=_productCostP,tagpath=tagpath)
+                    else:
+                        _dhlfee = calDHLShippingFee(weight,length,width,height)
+                        _shrinkage = calShrinkage(purchaseprice,freightfee,packagefee,opfee,currency,fbafee,adcost)
+                        _margin,_marginRate = calMargin(purchaseprice,freightfee,packagefee,opfee,currency,fbafee,_shrinkage,adcost,amazonfee,payserfee,amazonprice)
+                        _productCostP = calProductCostPercentage(purchaseprice,amazonprice,currency)
+                        product_obj = models.ProductTemp.objects.create(sku = new_sku,childAsin=new_childasin,title=new_title,\
+                                description=new_description,creater=user_obj,c_time=new_date,site=site_obj,purchasePrice=purchaseprice,weight=weight,\
+                                length=length,width=width,height=height,volumeWeight=volumeweight,packageFee=packagefee,opFee=opfee,\
+                                currency=currency,fbaFullfillmentFee=fbafee,amazonReferralFee=amazonfee,payoneerServiceFee=payserfee,\
+                                amazonSalePrice=amazonprice,adcost=adcost,image=new_image,dhlShippingFee=_dhlfee,shrinkage=_shrinkage,\
+                                margin=_margin,marginRate=_marginRate,productCostPercentage=_productCostP,freightFee=freightfee,tagpath=tagpath)
                     items = request.POST.getlist('item')
                     itemamounts = request.POST.getlist('itemamount')
 
@@ -738,7 +788,7 @@ def outStock(request):
     if not request.session.get('is_login',None):
         return redirect('/index')
     
-    outstocks = models.OutStock.objects.all()
+    outstocks = models.OutStock.objects.all().order_by('-id')
     return render(request,'outstock.html',locals())
 
 def outStockDetail(request,id):
@@ -749,13 +799,6 @@ def outStockDetail(request,id):
         outstock = models.OutStock.objects.get(id=id)
         #1对多的对象
         outitems = models.OutItem.objects.filter(master=id)
-        totaldhl = 0
-        for item in outitems:
-            if item.totalfee:
-                totaldhl += item.totalfee
-            else:
-                pass
-
     except:
         pass
 
@@ -780,14 +823,17 @@ class Outstockadd(View):
         
         user = request.session.get('user_name','None')
         user_obj = models.User.objects.get(name=user)
+        pageNow = "新增出库"
         #检查空值
         if new_code == "" or new_c_time == "" or new_description == "":
-            error_msg ="请完整填写表单"
+            error_msg ="未完整填写表单"
+            addErrorlog(request,error_msg,pageNow)
             return render(request,'error.html',locals())
         else:
-            code_exist = models.OutStock.objects.filter(code__contains = str(new_code))
+            code_exist = models.OutStock.objects.filter(code = str(new_code))
             if code_exist:
-                error_msg ="出库编号重复,请重新输入"
+                error_msg =new_code+":出库编号重复"
+                addErrorlog(request,error_msg,pageNow)
                 return render(request,'error.html',locals())
                 
             # 创建outstock对象,修改物料数量
@@ -812,7 +858,9 @@ class Outstockadd(View):
                             material_obj = index.pmMaterial
                             #将产品数量*对应物料的消耗个数
                             if material_obj.amount < index.pmAmount*item_amount:
-                                return HttpResponse(str(material_obj.pmMaterial)+":库存不足,无法出库")
+                                error_msg =material_obj.uniqueId+":库存不足,无法出库"
+                                addErrorlog(request,error_msg,pageNow)
+                                return render(request,'error.html',locals())
                             else:
                                 material_obj.amount -= index.pmAmount*item_amount
                                 material_obj.save()
@@ -835,6 +883,10 @@ def outItem(request):
     producttemps = models.ProductTemp.objects.all()
     return render(request,'outitem.html',locals())
 
+def preOutItem(request):
+    producttemps = models.ProductTemp.objects.all()
+    return render(request,'preoutitem.html',locals())
+
 
 class Uploadoutstock(View):
     def get(self,request):
@@ -852,14 +904,16 @@ class Uploadoutstock(View):
         new_code = request.POST.get('code')
         new_description = request.POST.get('description')
         File = request.FILES.get('files',None)
+        pageNow = "批量出库页"
         if File is None or new_c_time == "" or new_code == "":
-            error_msg ="请完整填写表单"
+            error_msg ="未完整填写表单"
             return render(request,'error.html',locals())
         else:
             # 对code查重
             code_exist = models.OutStock.objects.filter(code__contains = str(new_code))
             if code_exist:
-                error_msg ="出库编号重复,请重新录入"
+                error_msg =new_code+":出库编号重复"
+                addErrorlog(request,error_msg,pageNow)
                 return render(request,'error.html',locals())
                 
             else:
@@ -874,7 +928,14 @@ class Uploadoutstock(View):
                     wb = xlrd.open_workbook(filename=None,file_contents=File.read())
                     table = wb.sheets()[0]
                     nrows = table.nrows
-
+                    rowValue0 = table.row_values(0)
+                    tag = rowValue0[0]
+                    if tag != "outstocktable":
+                        error_msg =str(File.name)+":未识别到批量出库excel模板"
+                        addErrorlog(request,error_msg,pageNow)
+                        return render(request,'error.html',locals())
+                    else:
+                        pass
                     try:
                         with transaction.atomic():
                             for i in range(2,nrows):
@@ -890,7 +951,8 @@ class Uploadoutstock(View):
                                     for index in product_index:
                                         material_obj = index.pmMaterial
                                         if material_obj.amount < index.pmAmount*amountout:
-                                            return HttpResponse("库存不足,无法出库")
+                                            error_msg = material_obj.uniqueId+":库存不足,无法出库"
+                                            return render(request,'error.html',locals())
                                         else:
                                             material_obj.amount -= index.pmAmount*amountout
                                             material_obj.save()
@@ -901,17 +963,20 @@ class Uploadoutstock(View):
                                         siteinput=rowValues[0],dhlshippingfeeInput=_dhlfee,totalfee=_totalfee)
 
                                 else:
-                                    error_msg = "childAsin:"+childasin+"   该产品未创建,无法出库"
+                                    error_msg = "sku:"+_sku+"   该产品尚未创建,无法出库"
+                                    addErrorlog(request,error_msg,pageNow)
                                     return render(request,'error.html',locals())
                             message = "上传完成"
                             _act = "批量出库"+new_code
                             models.AutoLog.objects.create(date=getTime(),user=user_obj,act=_act)
                             return render(request,'uploadoutstock.html',locals())
                     except Exception as e:
-                        error_msg ="出现错误,未完成上传"
+                        error_msg ="出现未定义错误,未完成上传"
+                        addErrorlog(request,error_msg,pageNow)
                         return render(request,'error.html',locals())
                 else:
-                    error_msg ="上传文件格式不是xlsx"
+                    error_msg =str(File.name)+":上传文件格式不是xlsx"
+                    addErrorlog(request,error_msg,pageNow)
                     return render(request,'error.html',locals())
 
 def searchtest(request):
@@ -933,8 +998,10 @@ class Uploadnewpro(View):
         user = request.session.get('user_name','None')
         user_obj = models.User.objects.get(name=user)
         File = request.FILES.get('files',None)
+        pageNow = "批量新增产品页"
         if File is None or new_c_time == "" :
-            error_msg ="请完整填写表单"
+            error_msg ="未完整填写表单"
+            addErrorlog(request,error_msg,pageNow)
             return render(request,'error.html',locals())
         else:
             type_excel = File.name.split('.')[-1]
@@ -944,6 +1011,15 @@ class Uploadnewpro(View):
                 table = wb.sheets()[0]
                 nrows = table.nrows
                 ncols = table.ncols
+                #识别模板
+                rowValue0 = table.row_values(0)
+                tag = rowValue0[0]
+                if tag != "newprotable":
+                    error_msg =str(File.name)+"未识别到新建产品excel模板"
+                    addErrorlog(request,error_msg,pageNow)
+                    return render(request,'error.html',locals())
+                else:
+                    pass
                 
                 #原子化
                 try:
@@ -959,12 +1035,25 @@ class Uploadnewpro(View):
                             print new_site
                             
                             if new_sku=="" or new_childasin=="" or new_title=="" or new_site=="":
-                                error_msg = "第"+str(i)+"行的必填项目不完整,请检查上传文件."
+                                error_msg = str(File.name)+"第"+str(i)+"行的必填项目不完整,请检查."
+                                addErrorlog(request,error_msg,pageNow)
                                 return render(request,'error.html',locals())
                             else:
                                 site_exist = models.Site.objects.filter(name=new_site)
                                 sku_exist = models.ProductTemp.objects.filter(sku=new_sku)
                                 new_description = rowValues[24]
+                                #标签路径
+                                if rowValues[26] == "":
+                                    tagpath = "C:\\"
+                                else:
+                                    tagpath = rowValues[26]
+                                
+                                #实际运费
+                                if rowValues[25] == "":
+                                    freightfee = 0
+                                else:
+                                    freightfee = rowValues[25]
+                                
                                 if not sku_exist and site_exist :
                                     site_obj = models.Site.objects.get(name=new_site)
                                     tagE = 1#判断是否有空项
@@ -987,9 +1076,9 @@ class Uploadnewpro(View):
                                             description=new_description,creater=user_obj,c_time=new_c_time,site=site_obj,purchasePrice=dic_items["purchaseprice"],weight=dic_items["weight"],\
                                             length=dic_items["length"],width=dic_items["width"],height=dic_items["height"],volumeWeight=dic_items["volumeweight"],packageFee=dic_items["packagefee"],opFee=dic_items["opfee"],\
                                             currency=dic_items["currency"],fbaFullfillmentFee=dic_items["fbafee"],amazonReferralFee=dic_items["amazonfee"],payoneerServiceFee=dic_items["payserfee"],\
-                                            amazonSalePrice=dic_items["amazonprice"],adcost=dic_items["adcost"])
+                                            amazonSalePrice=dic_items["amazonprice"],adcost=dic_items["adcost"],tagpath = tagpath,freightFee=freightfee)
                                         print "pt_obj created"
-                                        for j in range(25,ncols,2):
+                                        for j in range(27,ncols,2):
                                             material_exist = models.InventoryMaterial.objects.filter(uniqueId=rowValues[j])
                                             if material_exist:
                                                 material_obj = models.InventoryMaterial.objects.get(uniqueId=rowValues[j])
@@ -998,23 +1087,37 @@ class Uploadnewpro(View):
                                             elif rowValues[j]=="":
                                                 break
                                             else :
-                                                tips = "物料uniqueID:   "+str(rowValues[j])+"   未查询到,请检查数据."
+                                                error_msg = "第"+str(i)+"行物料uniqueID:   "+str(rowValues[j])+"   未查询到,请检查数据."
+                                                addErrorlog(request,error_msg,pageNow)
                                                 return HttpResponse(tips)
                                     else:
                                         #这里要计算那堆乱七八糟了.
-                                        _dhlfee = calDHLShippingFee(dic_items["weight"],dic_items["length"],dic_items["width"],dic_items["height"])
-                                        _shrinkage = calShrinkage(dic_items["purchaseprice"],_dhlfee,dic_items["packagefee"],dic_items["opfee"],dic_items["currency"],dic_items["fbafee"],dic_items["adcost"])
-                                        _margin,_marginRate = calMargin(dic_items["purchaseprice"],_dhlfee,dic_items["packagefee"],dic_items["opfee"],\
-                                            dic_items["currency"],dic_items["fbafee"],_shrinkage,dic_items["adcost"],dic_items["amazonfee"],dic_items["payserfee"],dic_items["amazonprice"])
-                                        _productCostP = calProductCostPercentage(dic_items["purchaseprice"],dic_items["amazonprice"],dic_items["currency"])
-                                        product_obj = models.ProductTemp.objects.create(sku = new_sku,childAsin=new_childasin,title=new_title,\
-                                            description=new_description,creater=user_obj,c_time=new_c_time,site=site_obj,purchasePrice=dic_items["purchaseprice"],weight=dic_items["weight"],\
-                                            length=dic_items["length"],width=dic_items["width"],height=dic_items["height"],volumeWeight=dic_items["volumeweight"],packageFee=dic_items["packagefee"],opFee=dic_items["opfee"],\
-                                            currency=dic_items["currency"],fbaFullfillmentFee=dic_items["fbafee"],amazonReferralFee=dic_items["amazonfee"],payoneerServiceFee=dic_items["payserfee"],\
-                                            amazonSalePrice=dic_items["amazonprice"],adcost=dic_items["adcost"],dhlShippingFee=_dhlfee,shrinkage=_shrinkage,\
-                                            margin=_margin,marginRate=_marginRate,productCostPercentage=_productCostP)
+                                        if not freightfee or freightfee == 0 or str(freightfee)=="0.00":
+                                            _dhlfee = calDHLShippingFee(dic_items["weight"],dic_items["length"],dic_items["width"],dic_items["height"])
+                                            _shrinkage = calShrinkage(dic_items["purchaseprice"],_dhlfee,dic_items["packagefee"],dic_items["opfee"],dic_items["currency"],dic_items["fbafee"],dic_items["adcost"])
+                                            _margin,_marginRate = calMargin(dic_items["purchaseprice"],_dhlfee,dic_items["packagefee"],dic_items["opfee"],\
+                                                dic_items["currency"],dic_items["fbafee"],_shrinkage,dic_items["adcost"],dic_items["amazonfee"],dic_items["payserfee"],dic_items["amazonprice"])
+                                            _productCostP = calProductCostPercentage(dic_items["purchaseprice"],dic_items["amazonprice"],dic_items["currency"])
+                                            product_obj = models.ProductTemp.objects.create(sku = new_sku,childAsin=new_childasin,title=new_title,\
+                                                description=new_description,creater=user_obj,c_time=new_c_time,site=site_obj,purchasePrice=dic_items["purchaseprice"],weight=dic_items["weight"],\
+                                                length=dic_items["length"],width=dic_items["width"],height=dic_items["height"],volumeWeight=dic_items["volumeweight"],packageFee=dic_items["packagefee"],opFee=dic_items["opfee"],\
+                                                currency=dic_items["currency"],fbaFullfillmentFee=dic_items["fbafee"],amazonReferralFee=dic_items["amazonfee"],payoneerServiceFee=dic_items["payserfee"],\
+                                                amazonSalePrice=dic_items["amazonprice"],adcost=dic_items["adcost"],dhlShippingFee=_dhlfee,shrinkage=_shrinkage,\
+                                                margin=_margin,marginRate=_marginRate,productCostPercentage=_productCostP,tagpath = tagpath,freightFee=freightfee)
+                                        else:
+                                            _dhlfee = calDHLShippingFee(dic_items["weight"],dic_items["length"],dic_items["width"],dic_items["height"])
+                                            _shrinkage = calShrinkage(dic_items["purchaseprice"],freightfee,dic_items["packagefee"],dic_items["opfee"],dic_items["currency"],dic_items["fbafee"],dic_items["adcost"])
+                                            _margin,_marginRate = calMargin(dic_items["purchaseprice"],freightfee,dic_items["packagefee"],dic_items["opfee"],\
+                                                dic_items["currency"],dic_items["fbafee"],_shrinkage,dic_items["adcost"],dic_items["amazonfee"],dic_items["payserfee"],dic_items["amazonprice"])
+                                            _productCostP = calProductCostPercentage(dic_items["purchaseprice"],dic_items["amazonprice"],dic_items["currency"])
+                                            product_obj = models.ProductTemp.objects.create(sku = new_sku,childAsin=new_childasin,title=new_title,\
+                                                description=new_description,creater=user_obj,c_time=new_c_time,site=site_obj,purchasePrice=dic_items["purchaseprice"],weight=dic_items["weight"],\
+                                                length=dic_items["length"],width=dic_items["width"],height=dic_items["height"],volumeWeight=dic_items["volumeweight"],packageFee=dic_items["packagefee"],opFee=dic_items["opfee"],\
+                                                currency=dic_items["currency"],fbaFullfillmentFee=dic_items["fbafee"],amazonReferralFee=dic_items["amazonfee"],payoneerServiceFee=dic_items["payserfee"],\
+                                                amazonSalePrice=dic_items["amazonprice"],adcost=dic_items["adcost"],dhlShippingFee=_dhlfee,shrinkage=_shrinkage,\
+                                                margin=_margin,marginRate=_marginRate,productCostPercentage=_productCostP,tagpath = tagpath,freightFee=freightfee)
                                         print "pt_obj created"
-                                        for j in range(25,ncols,2):
+                                        for j in range(27,ncols,2):
                                             material_exist = models.InventoryMaterial.objects.filter(uniqueId=rowValues[j])
                                             if material_exist:
                                                 material_obj = models.InventoryMaterial.objects.get(uniqueId=rowValues[j])
@@ -1023,20 +1126,24 @@ class Uploadnewpro(View):
                                             elif rowValues[j]=="":
                                                 break
                                             else :
-                                                error_msg = "物料uniqueID:   "+str(rowValues[j])+"   未查询到,请检查数据."
+                                                error_msg = "第"+str(i)+"行物料uniqueID:   "+str(rowValues[j])+"   未查询到,请检查数据."
+                                                addErrorlog(request,error_msg,pageNow)
                                                 return render(request,'error.html',locals())
                                 else:
-                                    tips = "第"+str(i)+"行站点名称未注册 或 sku重复."
+                                    error_msg = "第"+str(i)+"行站点名称未注册 或 sku重复."
+                                    addErrorlog(request,error_msg,pageNow)
                                     return HttpResponse(tips)
                         message = "上传完毕,请在产品表查看并核对"
                         _act = "批量新增产品"
                         models.AutoLog.objects.create(date=getTime(),user=user_obj,act=_act)
                         return render(request,'uploadnewpro.html',locals())
                 except Exception as e:
-                    error_msg = "出现错误,未完成上传"
+                    error_msg = str(File.name)+":出现未定义错误,未完成上传"
+                    addErrorlog(request,error_msg,pageNow)
                     return render(request,'error.html',locals())
             else:
-                error_msg ="上传文件格式不是xlsx"
+                error_msg =str(File.name)+":上传文件格式不是xlsx"
+                addErrorlog(request,error_msg,pageNow)
                 return render(request,'error.html',locals())
 
 
@@ -1051,16 +1158,19 @@ class Changecurrency(View):
         return render(request,'changecurrency.html',locals())
     
     def post(self,request):
+        pageNow = "修改汇率页"
         new_currency = request.POST.get('currency')
         site = request.POST.get('site')
 
         if new_currency == "":
-            error_msg = "请正确输入汇率"
+            error_msg = "未正确输入汇率"
+            addErrorlog(request,error_msg,pageNow)
             return render(request,'error.html',locals())
         else:
             product_objs = models.ProductTemp.objects.filter(site__name=site)
             if not product_objs:
-                error_msg ="该站点下没有产品"
+                error_msg =site+":该站点下没有产品"
+                addErrorlog(request,error_msg,pageNow)
                 return render(request,'error.html',locals())
             
             else:
@@ -1068,11 +1178,16 @@ class Changecurrency(View):
                     if not product_obj.dhlShippingFee or str(product_obj.dhlShippingFee) == "0.00":
                         pass
                     else:
-                        _shrinkage = calShrinkage(product_obj.purchasePrice,product_obj.dhlShippingFee,product_obj.packageFee,product_obj.opFee,new_currency,product_obj.fbaFullfillmentFee,product_obj.adcost)
-                        _margin,_marginRate = calMargin(product_obj.purchasePrice,product_obj.dhlShippingFee,product_obj.packageFee,product_obj.opFee,\
-                                            new_currency,product_obj.fbaFullfillmentFee,_shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,product_obj.amazonSalePrice)
-                        _productCostP = calProductCostPercentage(product_obj.purchasePrice,product_obj.amazonSalePrice,new_currency)
-                        
+                        if not product_obj.freightFee or product_obj.freightFee == 0 or str(product_obj.freightFee) == "0.00":
+                            _shrinkage = calShrinkage(product_obj.purchasePrice,product_obj.dhlShippingFee,product_obj.packageFee,product_obj.opFee,new_currency,product_obj.fbaFullfillmentFee,product_obj.adcost)
+                            _margin,_marginRate = calMargin(product_obj.purchasePrice,product_obj.dhlShippingFee,product_obj.packageFee,product_obj.opFee,\
+                                                new_currency,product_obj.fbaFullfillmentFee,_shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,product_obj.amazonSalePrice)
+                            _productCostP = calProductCostPercentage(product_obj.purchasePrice,product_obj.amazonSalePrice,new_currency)
+                        else:
+                            _shrinkage = calShrinkage(product_obj.purchasePrice,product_obj.freightFee,product_obj.packageFee,product_obj.opFee,new_currency,product_obj.fbaFullfillmentFee,product_obj.adcost)
+                            _margin,_marginRate = calMargin(product_obj.purchasePrice,product_obj.freightFee,product_obj.packageFee,product_obj.opFee,\
+                                                new_currency,product_obj.fbaFullfillmentFee,_shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,product_obj.amazonSalePrice)
+                            _productCostP = calProductCostPercentage(product_obj.purchasePrice,product_obj.amazonSalePrice,new_currency)
                         models.ProductTemp.objects.filter(id=product_obj.id).update(shrinkage=_shrinkage,margin=_margin,marginRate=_marginRate,productCostPercentage=_productCostP,currency=new_currency)
         message = "更新完毕,请在产品表核查结果."
         _act = "修改汇率"+site
@@ -1087,8 +1202,786 @@ def error(request):
     return render(request,'error.html',locals())
 
 
+class ErrorLogList(View):
+    def get(self,request):
+        if not request.session.get('is_login',None):
+            return redirect('/index')
+            
+        errorlogs = models.ErrorLog.objects.all().order_by('-id')
+        q = request.GET.get('q','') #检索内容
+        
+        #检索部分的选择
+        #这里对检索内容后面加了一个按id倒序
+        if q:
+            errorlogs = errorlogs.filter(Q(date__icontains=q) | Q(message__icontains=q) | Q(page__icontains=q))
+        else:
+            pass
+            
+        #分页部分
+        paginator = Paginator(errorlogs,10)
+        try:
+            current_num = int(request.GET.get('page',1))
+            errorlogs = paginator.page(current_num)
+        except EmptyPage:
+            errorlogs = paginator.page(1)
+        if paginator.num_pages > 11:
+            if current_num -5 <1:
+                pageRange =range(1,11)
+            elif current_num + 5>paginator.num_pages:
+                pageRange = range(current_num-5,current_num+1)
+            else:
+                pageRange = range(current_num-5,current_num+6)
+        else:
+            pageRange = range(1,paginator.num_pages+1)
+        return render(request,'errorloglist.html',locals())
+
+def addErrorlog(request,message,page):
+    user = request.session.get('user_name','None')
+    user_obj = models.User.objects.get(name = user)
+    errorlog_obj = models.ErrorLog.objects.create(user=user_obj,date=getTime(),message=message,page=page)
+
+#上传excel批量修改物料表
+class Uploadmatmodify(View):
+    def get(self,request):
+        if not request.session.get('is_login',None):
+            return redirect('/index')
+        message = "请选择上传文件"
+        user = request.session.get('user_name','None')
+        date=getTime()
+        return render(request,'uploadmatmodify.html',locals())
+    
+    def post(self,request):
+        new_c_time = request.POST.get('c_time')
+        File = request.FILES.get('files',None)
+        user = request.session.get('user_name','None')
+        pageNow = "批量修改物料页"
+        
+        if File is None:
+            error_msg = "未选择上传文件"
+            addErrorlog(request,error_msg,pageNow)
+            return render(request,'error.html',locals())
+        else:
+            #记录自动日志
+            _act = "批量修改物料:"+File.name
+            user_obj = models.User.objects.get(name=user)
+            models.AutoLog.objects.create(date=new_c_time,user=user_obj,act=_act)
+            
+            type_excel = File.name.split('.')[-1] 
+            if 'xlsx'== type_excel:
+                #创建批量上传对象的记录
+                upload_obj = models.Uploadfiles.objects.create(uploaduser=user,date=new_c_time,file_name=File.name)
+                
+                #excel数据操作
+                wb = xlrd.open_workbook(filename=None,file_contents=File.read())
+                table = wb.sheets()[0]
+                nrows = table.nrows
+                rowValue0 = table.row_values(0)
+                tag = rowValue0[0]
+                if tag != "uploadmaterialmodify":
+                    error_msg =str(File.name)+":未识别到批量修改物料excel标准模板"
+                    addErrorlog(request,error_msg,pageNow)
+                    return render(request,'error.html',locals())
+                else:
+                    pass
+                
+                #原子化
+                for i in range(2,nrows):
+                    rowValues = table.row_values(i)
+                    uniq = rowValues[0]
+                    new_description = rowValues[1]
+                    new_amount = rowValues[2]
+                    purchaseuser = rowValues[3]
+                    
+                    #首先查找有没有对应的uniqID
+                    uniq_obj = models.InventoryMaterial.objects.filter(uniqueId=uniq)
+                    if uniq_obj:
+                        #判断excel中有哪些数据,有的就更新
+                        #非空pass是ok的,不符合类型的pass还需要修改
+                        if new_description:
+                            uniq_obj.update(description=new_description)
+                        else:
+                            pass
+                        if new_amount and isinstance(new_amount,int):
+                            amount = abs(new_amount)
+                            uniq_obj.update(amount=amount)
+                        else:
+                            pass
+                        if purchaseuser:
+                            new_user = models.User.objects.get(name = purchaseuser)
+                            uniq_obj.update(userPurchase=new_user)
+                        else:
+                            pass
+                        print "第"+str(i)+"行更新完毕"
+                    else:
+                        #这里后面会升级为整体报错模式
+                        error_msg = "第"+str(i)+"行,sku在库存表中未查询到"
+                        addErrorlog(request,error_msg,pageNow)
+                        return render(request,'error.html',locals())
+                message = "已完成上传,请在物料库存表中核对."
+                return render(request,'uploadmatmodify.html',locals())
+
+            else:
+                error_msg = File.name+":上传文件格式不是xlsx"
+                addErrorlog(request,error_msg,pageNow)
+                return render(request,'error.html',locals())
+
+        
+class Uploadpromodify(View):
+    def get(self,request):
+        if not request.session.get('is_login',None):
+            return redirect('/index')
+        message = "请选择上传文件"
+        user = request.session.get('user_name','None')
+        # user_obj = models.User.objects.get(name=user)
+        date=getTime()
+        return render(request,'uploadpromodify.html',locals())
+    
+    def post(self,request):
+        new_c_time = request.POST.get('c_time')
+        File = request.FILES.get('files',None)
+        user = request.session.get('user_name','None')
+        pageNow = "批量修改产品页"
+        
+        if File is None:
+            error_msg = "未选择上传文件"
+            addErrorlog(request,error_msg,pageNow)
+            return render(request,'error.html',locals())
+        else:
+            #记录自动日志
+            _act = "批量修改产品:"+File.name
+            user_obj = models.User.objects.get(name=user)
+            models.AutoLog.objects.create(date=new_c_time,user=user_obj,act=_act)
+            type_excel = File.name.split('.')[-1] 
+            
+            if 'xlsx'== type_excel:
+                upload_obj = models.Uploadfiles.objects.create(uploaduser=user,date=new_c_time,file_name=File.name)
+                
+                #excel数据操作
+                wb = xlrd.open_workbook(filename=None,file_contents=File.read())
+                table = wb.sheets()[0]
+                nrows = table.nrows
+                ncols = table.ncols
+                rowValue0 = table.row_values(0)
+                tag = rowValue0[0]
+                if tag != "uploadproductmodify":
+                    error_msg =str(File.name)+":未识别到批量修改产品excel标准模板"
+                    addErrorlog(request,error_msg,pageNow)
+                    return render(request,'error.html',locals())
+                else:
+                    pass
+                #未原子化
+                for i in range(2,nrows):
+                    rowValues = table.row_values(i)
+                    sku = rowValues[1]
+                    list_col_fund = [2,3,24,25,26]
+                    list_col_advance = [4,5,6,7,8,9,11,12,13,14,16,17,18,19]
+                    list_name_fund = ["childAsin","title","description","freightFee","tagpath"]
+                    list_name_advance = ["purchasePrice","weight","length","width","height","volumeWeight","packageFee",\
+                                    "opFee","currency","fbaFullfillmentFee","adcost","amazonReferralFee","payoneerServiceFee","amazonSalePrice"]
+                    #先判断sku
+                    product_objs = models.ProductTemp.objects.filter(sku=sku)
+                    #未找到sku,回头升级为整体报错
+                    if not product_objs:
+                        error_msg ="第"+str(i)+"行"+sku+":产品库未识别到该sku"
+                        addErrorlog(request,error_msg,pageNow)
+                        return render(request,'error.html',locals())
+                    else:
+                        #update用变量代替字段名,update(**{attr:value})
+                        #是否进行公式项计算标签
+                        tag_formula = 0
+                        #基础项目更新,不影响公式项
+                        for order,attr in zip(list_col_fund,list_name_fund):
+                            if rowValues[order] == "":
+                                pass
+                            else:
+                                new_value = rowValues[order]
+                                product_objs.update(**{attr:new_value})
+                        print "base attr updated"
+                        
+                        #详情项更新,需要重新计算formula
+                        for order,attr in zip(list_col_advance,list_name_advance):
+                            if rowValues[order] == "":
+                                pass
+                            else:
+                                tag_formula = 1
+                                new_value = rowValues[order]
+                                product_objs.update(**{attr:new_value})
+                        print "advanced attr updated"
+                        
+                        product_obj = product_objs[0]
+                        #分有实际运费和没有两种情况计算数据
+                        if not product_obj.freightFee or product_obj.freightFee == 0 or str(product_obj.freightFee) == "0.00":
+                            _dhlfee = calDHLShippingFee(product_obj.weight,product_obj.length,product_obj.width,product_obj.height)
+                            _shrinkage = calShrinkage(product_obj.purchasePrice,_dhlfee,product_obj.packageFee,product_obj.opFee,product_obj.currency,product_obj.fbaFullfillmentFee,product_obj.adcost)
+                            _margin,_marginRate = calMargin(product_obj.purchasePrice,_dhlfee,product_obj.packageFee,product_obj.opFee,\
+                                                product_obj.currency,product_obj.fbaFullfillmentFee,_shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,product_obj.amazonSalePrice)
+                            _productCostP = calProductCostPercentage(product_obj.purchasePrice,product_obj.amazonSalePrice,product_obj.currency)
+                        else:
+                            _shrinkage = calShrinkage(product_obj.purchasePrice,product_obj.freightFee,product_obj.packageFee,product_obj.opFee,product_obj.currency,product_obj.fbaFullfillmentFee,product_obj.adcost)
+                            _margin,_marginRate = calMargin(product_obj.purchasePrice,product_obj.freightFee,product_obj.packageFee,product_obj.opFee,\
+                                                product_obj.currency,product_obj.fbaFullfillmentFee,_shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,product_obj.amazonSalePrice)
+                            _productCostP = calProductCostPercentage(product_obj.purchasePrice,product_obj.amazonSalePrice,product_obj.currency)
+                        print str(i)+":formula updated"
+                        
+                        #对mp关系进行修改,先查出product_obj的id,然后反查pm,再把pm清空,最后更新pm关系
+                        if not rowValues[27]:
+                            pass
+                        else:
+                            #清空pm关系
+                            pid = product_obj.id
+                            mp_relations = models.ProductMaterial.objects.filter(pmProduct=pid)
+                            mp_relations.delete()
+                            #创建新关系
+                            for j in range(27,ncols,2):
+                                material_exist = models.InventoryMaterial.objects.filter(uniqueId=rowValues[j])
+                                if material_exist:
+                                    material_obj = models.InventoryMaterial.objects.get(uniqueId=rowValues[j])
+                                    material_amount = abs(int(rowValues[j+1]))
+                                    pmrelation_obj = models.ProductMaterial.objects.create(pmMaterial=material_obj,pmProduct=product_obj,pmAmount=material_amount)
+                                elif rowValues[j]=="":
+                                    break
+                                else :
+                                    error_msg = "第"+str(i)+"行物料uniqueID:   "+str(rowValues[j])+"   未查询到,请检查数据."
+                                    addErrorlog(request,error_msg,pageNow)
+                                    return render(request,'error.html',locals())
+                            print str(i)+":pm updated"
+
+                message = "已完成上传,请在产品表中核对."
+                return render(request,'uploadpromodify.html',locals())
+
+            else:
+                error_msg = File.name+":上传文件格式不是xlsx"
+                addErrorlog(request,error_msg,pageNow)
+                return render(request,'error.html',locals())
+
+class Rapidmatmodify(View):
+    def get(self,request):
+        if not request.session.get('is_login',None):
+            return redirect('/index')
+            
+        inventorymaterials = models.InventoryMaterial.objects.all().order_by('id')
+        sort = request.GET.get('sort','') #排序方式
+        q = request.GET.get('q','') #检索内容
+        total_amount_obj = models.InventoryMaterial.objects.values('amount').aggregate(num=Sum('amount'))#总库存
+        total_amount = total_amount_obj['num']
+        #检索部分的选择
+        if q:
+            inventorymaterials = inventorymaterials.filter(Q(uniqueId__icontains=q) | 
+                Q(description__icontains=q) | Q(amount__icontains=q))
+        else:
+            pass
+        #排序部分
+        if sort:
+            if sort == 'amountincrease':
+                inventorymaterials = inventorymaterials.order_by('amount')
+            if sort == 'amountdecrease':
+                inventorymaterials = inventorymaterials.order_by('-amount')
+            else:
+                pass
+        else:
+            pass
+            
+        #分页部分
+        paginator = Paginator(inventorymaterials,10)
+        try:
+            current_num = int(request.GET.get('page',1))
+            inventorymaterials = paginator.page(current_num)
+        except EmptyPage:
+            inventorymaterials = paginator.page(1)
+        if paginator.num_pages > 11:
+            if current_num -5 <1:
+                pageRange =range(1,11)
+            elif current_num + 5>paginator.num_pages:
+                pageRange = range(current_num-5,current_num+1)
+            else:
+                pageRange = range(current_num-5,current_num+6)
+        else:
+            pageRange = range(1,paginator.num_pages+1)
+            
+        return render(request,'rapidmatmodify.html',locals())
+    
+    def post(self,request):
+        tag_in = request.POST.get("tag_in")
+        get_price = request.POST.get("get_price")
+        get_amount = request.POST.get("get_amount")
+        im_id = request.POST.get("im_id")
+        id = int(im_id)
+        
+        mat_obj = models.InventoryMaterial.objects.get(id=id)
+        if tag_in == "m_amount":
+            new_amount,tag_amount = judgeint(get_amount)
+            if not tag_amount:
+                ret = {"tag_out":"wrong_type"}
+            else:
+                mat_obj.amount = new_amount
+                mat_obj.save()
+                tag_out="Success"
+                ret = {"new_amount":new_amount,"tag_out":tag_out}
+        elif tag_in == "m_price":
+            new_price,tag_out = judgeinput(get_price)
+            if tag_out == "wrong_type":
+                ret = {"tag_out":"wrong_type"}
+            else:
+                mat_obj.price = new_price
+                mat_obj.save()
+                ret = {"new_price":new_price,"tag_out":"Success"}
+        else:
+            ret = {"tag_out":"wrong_type"}
+        return HttpResponse(json.dumps(ret))
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+class Rapidpromodify(View):
+    def get(self,request):
+        if not request.session.get('is_login',None):
+            return redirect('/index')
+        producttemps = models.ProductTemp.objects.all().order_by('id')
+
+        q = request.GET.get('q','') #检索内容
+        order = request.GET.get('order','')
+        specify = request.GET.get('specify','')
+        print specify
+        
+        #检索部分的选择
+        if q:
+            producttemps = producttemps.filter(Q(title__icontains=q) | Q(sku__icontains=q) | Q(description__icontains=q))
+        else:
+            pass
+            
+        #排序部分
+        if specify == "id":
+            producttemps = producttemps.order_by(orderspecify(order,specify))
+        elif specify == "purchasePrice":
+            producttemps = producttemps.order_by(orderspecify(order,specify))
+        elif specify == "dhlShippingFee":
+            producttemps = producttemps.order_by(orderspecify(order,specify))
+        elif specify == "freightFee":
+            producttemps = producttemps.order_by(orderspecify(order,specify))
+        elif specify == "amazonSalePrice":
+            producttemps = producttemps.order_by(orderspecify(order,specify))
+        elif specify == "margin":
+            producttemps = producttemps.order_by(orderspecify(order,specify))
+        elif specify == "marginRate":
+            producttemps = producttemps.order_by(orderspecify(order,specify))
 
 
+        #分页部分
+        paginator = Paginator(producttemps,10)
+        try:
+            current_num = int(request.GET.get('page',1))
+            producttemps = paginator.page(current_num)
+        except EmptyPage:
+            producttemps = paginator.page(1)
+        if paginator.num_pages > 11:
+            if current_num -5 <1:
+                pageRange =range(1,11)
+            elif current_num + 5>paginator.num_pages:
+                pageRange = range(current_num-5,current_num+1)
+            else:
+                pageRange = range(current_num-5,current_num+6)
+        else:
+            pageRange = range(1,paginator.num_pages+1)
+        _act = "浏览产品快速修改页"+" 搜索: "+q
+        user = request.session.get('user_name','None')
+        user_obj = models.User.objects.get(name=user)
+        models.AutoLog.objects.create(date=getTime(),user=user_obj,act=_act)
+        return render(request,'rapidpromodify.html',locals())
+    
+    def post(self,request):
+        tag_in = request.POST.get("tag_in")
+        get_pprice = request.POST.get("get_pprice")
+        get_fee = request.POST.get("get_fee")
+        get_sale = request.POST.get("get_sale")
+        p_id = request.POST.get("p_id")
+        id = int(p_id)
+        product_obj = models.ProductTemp.objects.get(id=id)
+        #对于修改采购价,运费,亚马逊售价进行数据清洗和计算,通过ajax返回字典
+        if tag_in == "pprice":
+            new_pprice,tag_out = judgeinput(get_pprice)
+            if tag_out == "wrong_type":
+                ret = {"tag_out":"wrong_type"}
+            else:
+                if not product_obj.freightFee or product_obj.freightFee == 0 or str(product_obj.freightFee) == "0.00":
+                    _shrinkage = calShrinkage(new_pprice,product_obj.dhlShippingFee,product_obj.packageFee,product_obj.opFee,product_obj.currency,product_obj.fbaFullfillmentFee,product_obj.adcost)
+                    _margin,_marginRate = calMargin(new_pprice,product_obj.dhlShippingFee,product_obj.packageFee,product_obj.opFee,\
+                                          product_obj.currency,product_obj.fbaFullfillmentFee,_shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,product_obj.amazonSalePrice)
+                    product_obj.shrinkage = _shrinkage
+                    product_obj.margin = _margin
+                    product_obj.marginRate = _marginRate
+                else:
+                    _shrinkage = calShrinkage(new_pprice,product_obj.freightFee,product_obj.packageFee,product_obj.opFee,product_obj.currency,product_obj.fbaFullfillmentFee,product_obj.adcost)
+                    _margin,_marginRate = calMargin(new_pprice,product_obj.freightFee,product_obj.packageFee,product_obj.opFee,\
+                                          product_obj.currency,product_obj.fbaFullfillmentFee,_shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,product_obj.amazonSalePrice)
+                    product_obj.shrinkage = _shrinkage
+                    product_obj.margin = _margin
+                    product_obj.marginRate = _marginRate
+                product_obj.purchasePrice = new_pprice
+                product_obj.save()
+                _m = round(_margin,3)
+                _mr = str(round(_marginRate,3))+"%"
+                ret = {"new_pprice":new_pprice,"new_margin":_m,"new_marginrate":_mr,"tag_out":tag_out}
+            
+        elif tag_in == "freightfee":
+            new_freightfee,tag_out = judgeinput(get_fee)
+            if tag_out == "wrong_type" or new_freightfee == 0:
+                ret = {"tag_out":"wrong_type"}
+            else:
+                _shrinkage = calShrinkage(product_obj.purchasePrice,new_freightfee,product_obj.packageFee,product_obj.opFee,product_obj.currency,product_obj.fbaFullfillmentFee,product_obj.adcost)
+                _margin,_marginRate = calMargin(product_obj.purchasePrice,new_freightfee,product_obj.packageFee,product_obj.opFee,\
+                                   product_obj.currency,product_obj.fbaFullfillmentFee,_shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,product_obj.amazonSalePrice)
+                product_obj.shrinkage = _shrinkage
+                product_obj.margin = _margin
+                product_obj.marginRate = _marginRate
+                product_obj.freightFee = new_freightfee
+                product_obj.save()
+                _m = round(_margin,3)
+                _mr = str(round(_marginRate,3))+"%"
+                ret = {"new_freightfee":new_freightfee,"new_margin":_m,"new_marginrate":_mr,"tag_out":tag_out}
+        elif tag_in == "amazonSP":
+            new_amazonprice,tag_out = judgeinput(get_sale)
+            if tag_out == "wrong_type" or new_amazonprice == 0:
+                ret = {"tag_out":"wrong_type"}
+            else:
+                if not product_obj.freightFee or product_obj.freightFee == 0 or str(product_obj.freightFee) == "0.00":
+                    _margin,_marginRate = calMargin(product_obj.purchasePrice,product_obj.dhlShippingFee,product_obj.packageFee,product_obj.opFee,\
+                                          product_obj.currency,product_obj.fbaFullfillmentFee,product_obj.shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,new_amazonprice)
+                    product_obj.margin = _margin
+                    product_obj.marginRate = _marginRate
+                else:
+                    _margin,_marginRate = calMargin(product_obj.purchasePrice,product_obj.freightFee,product_obj.packageFee,product_obj.opFee,\
+                                          product_obj.currency,product_obj.fbaFullfillmentFee,product_obj.shrinkage,product_obj.adcost,product_obj.amazonReferralFee,product_obj.payoneerServiceFee,new_amazonprice)
+                    product_obj.margin = _margin
+                    product_obj.marginRate = _marginRate
+                product_obj.amazonSalePrice = new_amazonprice
+                product_obj.save()
+                _m = round(_margin,3)
+                _mr = str(round(_marginRate,3))+"%"
+                ret = {"new_amazonprice":new_amazonprice,"new_margin":_m,"new_marginrate":_mr,"tag_out":tag_out}
+        else:
+            pass
+        return HttpResponse(json.dumps(ret))
+
+def judgeinput(num):
+    try:
+        ret = float(num)
+        tag_out = "float"
+    except:
+        ret = 0
+        tag_out = "wrong_type"
+    return abs(ret),tag_out
+
+def judgeint(num):
+    try:
+        ret = int(num)
+        tag_out = True
+    except:
+        ret = 0
+        tag_out = False
+    return abs(ret),tag_out
+
+def getWeight(weight):
+    if weight:
+        pass
+    else:
+        weight = 0
+    return weight
+
+def getVolume(l,w,h):
+    if l and w and h:
+        volume = (l*w*h)/1000000
+    else:
+        volume = 0
+    return volume
+        
+def decimal2float(listobj):
+    listout=[]
+    for item in listobj:
+        listout.append(float(item))
+    return listout
+
+
+        
+class PreOutstock(View):
+    def get(self,request):
+        if not request.session.get('is_login',None):
+            return redirect('/index')
+        message = "请完成表单所有项目"
+        user = request.session.get('user_name','None')
+        date=getTime()
+        return render(request,'preoutstock.html',locals())
+    def post(self,request):
+        message="已点击保存"
+        pcode = request.POST.get('precode')
+        ptime = request.POST.get('c_time')
+        pdescription = request.POST.get('description')
+        user = request.POST.get('user')
+        user_obj = models.User.objects.get(name=user)
+        pageNow = "新建预出库"
+        #获取新的preoutitem
+        items = request.POST.getlist('item')
+        itemamounts = request.POST.getlist("itemamount")
+        #上传的容器
+        weight_list = []
+        volume_list = []
+        fee_list = []
+        site_list = []
+        path_list = []
+        if pcode == "" or pdescription == "":
+            error_msg = "未完整填写表单"
+            addErrorlog(request,error_msg,pageNow)
+            return render(request,'error.html',locals())
+        else:
+            exist_obj = models.PreOutstock.objects.filter(pcode = str(pcode))
+            if exist_obj:
+                print "exist"
+                exist_obj.update(ptime=ptime,pdescription=pdescription,user=user_obj)
+                preoutstock_obj = exist_obj[0]
+                #写日志
+                _act = "修改了预出库表:"+str(pcode)
+                models.AutoLog.objects.create(date=ptime,user=user_obj,act=_act)
+
+                #清空旧的preoutitem
+                models.PreOutitem.objects.filter(master=preoutstock_obj).delete()
+                
+                for item,itemamount in zip(items,itemamounts):
+                    item_amount,tag_out = judgeint(itemamount)
+                    sku_exist = models.ProductTemp.objects.filter(sku=item)
+                    if item == u'' or itemamount == u'' or (not tag_out) or (not sku_exist):
+                        pass
+                    else:
+                        item=str(item)
+                        product_obj = models.ProductTemp.objects.get(sku=item)
+                        #创建多对多的对象
+                        preitem_obj = models.PreOutitem.objects.create(master=preoutstock_obj,productName=product_obj,amount=item_amount)
+                        #创建PreOutitem对象,获取其重量,体积,运费,便于计算整体数据.
+                        item_weight = getWeight(product_obj.weight)
+                        #函数判断,如果长宽高不全存在,就返回0
+                        item_volume = getVolume(product_obj.length,product_obj.width,product_obj.height)
+                        #如果存在实际运费,就他;如果不存在,而dhl存在,就dhl;都没有,就0
+                        if product_obj.freightFee and product_obj.freightFee != 0:
+                            item_freightfee = product_obj.freightFee
+                        elif item_volume != 0 and product_obj.dhlShippingFee:
+                            item_freightfee = product_obj.dhlShippingFee
+                        else:
+                            item_freightfee = 0 
+                        item_weight_sum = item_weight*item_amount
+                        item_volume_sum = item_volume*item_amount
+                        item_freightfee_sum = item_freightfee*item_amount
+                        site = product_obj.site.name
+                        if product_obj.tagpath:
+                            path = product_obj.tagpath
+                        else:
+                            path = "not define"
+                        
+                        weight_list.append(item_weight_sum)
+                        volume_list.append(item_volume_sum)
+                        fee_list.append(item_freightfee_sum)
+                        site_list.append(site)
+                        path_list.append(path)
+                total_weight = float(sum(weight_list))
+                total_volume = float(sum(volume_list))
+                total_fee = float(sum(fee_list))
+                
+                fw_list = decimal2float(weight_list)
+                fv_list = decimal2float(volume_list)
+                ff_list = decimal2float(fee_list)
+                
+                preoutstock_obj.total_weight = total_weight
+                preoutstock_obj.total_volume = total_volume
+                preoutstock_obj.total_freightfee = total_fee
+                preoutstock_obj.save()
+                
+                ret = {"total_weight":total_weight,"total_volume":total_volume,"total_fee":total_fee,"tag_out":"ok",\
+                    "site_list":site_list,"weight_list":fw_list,"volume_list":fv_list,"fee_list":ff_list,"path_list":path_list}
+                return HttpResponse(json.dumps(ret))
+                
+            else:
+                preoutstock_obj = models.PreOutstock.objects.create(pcode=pcode,ptime=ptime,pdescription=pdescription,user=user_obj)
+                #写日志
+                _act = "创建了预出库表:"+str(pcode)
+                models.AutoLog.objects.create(date=ptime,user=user_obj,act=_act)
+
+                for item,itemamount in zip(items,itemamounts):
+                    item_amount,tag_out = judgeint(itemamount)
+                    sku_exist = models.ProductTemp.objects.filter(sku=item)
+                    if item == u'' or itemamount == u'' or (not tag_out) or (not sku_exist):
+                        pass
+                    else:
+                        item=str(item)
+                        product_obj = models.ProductTemp.objects.get(sku=item)
+                        #创建多对多的对象
+                        preitem_obj = models.PreOutitem.objects.create(master=preoutstock_obj,productName=product_obj,amount=item_amount)
+                        
+                        #创建PreOutitem对象,获取其重量,体积,运费,便于计算整体数据.
+                        item_weight = getWeight(product_obj.weight)
+                        #函数判断,如果长宽高不全存在,就返回0
+                        item_volume = getVolume(product_obj.length,product_obj.width,product_obj.height)
+                        #如果存在实际运费,就他;如果不存在,而dhl存在,就dhl;都没有,就0
+                        if product_obj.freightFee and product_obj.freightFee != 0:
+                            item_freightfee = product_obj.freightFee
+                        elif item_volume != 0 and product_obj.dhlShippingFee:
+                            item_freightfee = product_obj.dhlShippingFee
+                        else:
+                            item_freightfee = 0 
+                        item_weight_sum = item_weight*item_amount
+                        item_volume_sum = item_volume*item_amount
+                        item_freightfee_sum = item_freightfee*item_amount
+                        site = product_obj.site.name
+                        if product_obj.tagpath:
+                            path = product_obj.tagpath
+                        else:
+                            path = "not define"
+                        
+                        weight_list.append(item_weight_sum)
+                        volume_list.append(item_volume_sum)
+                        fee_list.append(item_freightfee_sum)
+                        site_list.append(site)
+                        path_list.append(path)
+                total_weight = float(sum(weight_list))
+                total_volume = float(sum(volume_list))
+                total_fee = float(sum(fee_list))
+                
+                fw_list = decimal2float(weight_list)
+                fv_list = decimal2float(volume_list)
+                ff_list = decimal2float(fee_list)
+                
+                preoutstock_obj.total_weight = total_weight
+                preoutstock_obj.total_volume = total_volume
+                preoutstock_obj.total_freightfee = total_fee
+                preoutstock_obj.save()
+                
+                ret = {"total_weight":total_weight,"total_volume":total_volume,"total_fee":total_fee,"tag_out":"ok",\
+                    "site_list":site_list,"weight_list":fw_list,"volume_list":fv_list,"fee_list":ff_list,"path_list":path_list}
+                return HttpResponse(json.dumps(ret))
+
+def pre2OutStock(request):
+    #这里只要模仿出库页就可以了吧
+    pcode = request.POST.get('precode')
+    new_c_time = getTime()
+    new_description = request.POST.get('description')
+    new_code = request.POST.get("get_code")
+    user = request.POST.get("user")
+    user_obj = models.User.objects.get(name=user)
+    pageNow = "从预出库页新增出库"
+    #上传的容器
+    weight_list = []
+    volume_list = []
+    fee_list = []
+
+    #检查空值
+    if new_code == "" or new_c_time == "" or new_description == "":
+        #报错日志记录
+        error_msg ="未完整填写表单"
+        addErrorlog(request,error_msg,pageNow)
+        #前端报错
+        tag_out = "Error:"+error_msg
+        ret = {"tag_out":tag_out}
+        return HttpResponse(json.dumps(ret))
+    else:
+        code_exist = models.OutStock.objects.filter(code = str(new_code))
+        if code_exist:
+            #报错日志记录
+            error_msg =new_code+":出库编号重复"
+            addErrorlog(request,error_msg,pageNow)
+            #前端报错
+            tag_out = "Error:"+error_msg
+            ret = {"tag_out":tag_out}
+            return HttpResponse(json.dumps(ret))
+        else:
+            outstock_obj = models.OutStock.objects.create(code=new_code,c_time=new_c_time,description=new_description,userOutstock=user_obj)
+            items = request.POST.getlist('item')
+            itemamounts = request.POST.getlist("itemamount")
+            
+            #整体报错体系还需要思考
+            for item,itemamount in zip(items,itemamounts):
+                item_amount,itemtag_out = judgeint(itemamount)
+                sku_exist = models.ProductTemp.objects.filter(sku=item)
+                if item == u'' or itemamount == u'' or (not itemtag_out) or (not sku_exist):
+                    pass
+                else:
+                    item=str(item)
+                    #拿到循环中需要的产品对象
+                    product_obj = models.ProductTemp.objects.get(sku=item)
+                    _site = str(product_obj.site.name)
+                    #拿到产品对应的物料对象set
+                    product_index = models.ProductMaterial.objects.filter(pmProduct=product_obj)
+                    #每一个product对应了多个物料,和数量,遍历这些参数,便于增减
+                    for index in product_index:
+                        material_obj = index.pmMaterial
+                        #将产品数量*对应物料的消耗个数
+                        if material_obj.amount < index.pmAmount*item_amount:
+                            error_msg =material_obj.uniqueId+":库存不足,无法出库"
+                            addErrorlog(request,error_msg,pageNow)
+                            tag_out = "Error:"+error_msg
+                            ret = {"tag_out":tag_out}
+                            return HttpResponse(json.dumps(ret))
+                        else:
+                            material_obj.amount -= index.pmAmount*item_amount
+                            material_obj.save()
+                    item_weight = getWeight(product_obj.weight)
+                    item_volume = getVolume(product_obj.length,product_obj.width,product_obj.height)
+                    if product_obj.freightFee and product_obj.freightFee != 0:
+                        item_freightfee = product_obj.freightFee
+                    elif item_volume != 0 and product_obj.dhlShippingFee:
+                        item_freightfee = product_obj.dhlShippingFee
+                    else:
+                        item_freightfee = 0 
+                    item_weight_sum = item_weight*item_amount
+                    item_volume_sum = item_volume*item_amount
+                    item_freightfee_sum = item_freightfee*item_amount
+                    #创建outitem对象
+                    item_object = models.OutItem.objects.create(master=outstock_obj,productName=product_obj,amountOut=item_amount,\
+                        site=_site,freightfee=item_freightfee_sum,weight=item_weight_sum,volume=item_volume_sum)
+                    weight_list.append(item_weight_sum)
+                    volume_list.append(item_volume_sum)
+                    fee_list.append(item_freightfee_sum)
+            total_weight = float(sum(weight_list))
+            total_volume = float(sum(volume_list))
+            total_fee = float(sum(fee_list))
+            outstock_obj.total_weight = total_weight
+            outstock_obj.total_volume = total_volume
+            outstock_obj.total_freightfee = total_fee
+            #为出库对象增加属性
+            outstock_obj.save()
+            tag_out = "成功出库,编号:"+new_code
+            ret = {"tag_out":tag_out}
+            return HttpResponse(json.dumps(ret))
+        
+        
+
+def preOutstockList(request):
+    if not request.session.get('is_login',None):
+        return redirect('/index')
+    preoutstocks = models.PreOutstock.objects.all().order_by('-id')
+    return render(request,'preoutstocklist.html',locals())
+
+
+        
+class PreOutstockDetail(View):
+    def get(self,request,id):
+        if not request.session.get('is_login',None):
+            return redirect('/index')
+        try:
+            preoutstock = models.PreOutstock.objects.get(id=id)
+            preoutitems = models.PreOutitem.objects.filter(master=id)
+        except:
+            pass
+        message="已读取预出库表"
+        count = len(preoutitems)
+        return render(request,'preoutstockdetail.html',locals())
+    def post(self,request):
+        pass
+        
 
 
 

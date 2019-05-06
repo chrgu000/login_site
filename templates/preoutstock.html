@@ -1,0 +1,232 @@
+{% extends 'login/base.html' %}
+{% block title %}新增预出库{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+ 
+    <div class="row">
+        <div class="col-md-10 ">
+            <form id="form_preout" method="POST" action="##" onsubmit="return false">
+            
+                {% csrf_token %}
+                
+              {% if message %}
+                  <div class="alert alert-warning">{{ message }}</div>
+              {% endif %}
+              
+                <label for="precode">预出库编号:</label>
+                <input id="precode" type="text" name="precode" class="form-control"/></br>
+                <label for="description">描述信息:</label>
+                <input type="text" name="description" class="form-control" id="description"/><br>
+                <label for="c_time">创建/修改时间:</label>
+                <input type="text" name="c_time" value="{{date}}" readonly="readonly" class="form-control"/><br> 
+                <label for="user">创建/修改人:</label>
+                <input type="text" name="user" value="{{user}}" readonly="readonly" class="form-control"/></br>
+                <label for="items">添加出库项:</label></br>
+                <table class="table table-striped table-bordered" >
+                    <tbody>
+                        <tr>
+                            <th>序号</th>
+                            <th>SKU</th>
+                            <th>检索</th>
+                            <th>数量</th>
+                            <!-- <th>INFO</th> -->
+                            <th>站点</th>
+                            <th>运费(元)</th>
+                            <th>体积(m<sup>3</sup>)</th>
+                            <th>重量(kg)</th>
+                            <th>TAG地址</th>
+
+                        </tr>
+                        <tr>
+                            <td id="row1">1</td>
+                            <td width="160px"><input type="text" name="item"  style="width:200px" id="item1"/></td>
+                            <td><button class="getPro" id="1"><span class="glyphicon glyphicon-search"></span></button></td>
+                            <td width="60px"><input type="number" name="itemamount" style="width:50px"/></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td width="220px"></td>
+
+                        </tr>
+                    </tbody>
+                </table>
+                <button id="additem" class="btn btn-default"">增加预出库项</button></br>
+                </br>
+                <input type="button" value="保存并计算" id="save" class="btn btn-default" >
+                <input type="reset" value="重置" class="btn btn-default">
+                <input type="button" value="出库" id="outstock" class="btn btn-default" style="float:right">
+
+            </form>
+            
+        </div>
+        <div class="col-md-2">
+            <h1>总运费:</h1>
+            <h1><span id="totalfee">0.00</span>元</h1>
+            </br>
+            <h2>总重量:</h2>
+            <h2><span id="totalweight">0.00</span>kg</h2>
+            <h2>总体积:</h1>
+            <h2><span id="totalvolume">0.000</span>m<sup>3</sup></h2>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block on_ready %}
+
+$(document).ready(function(){
+    var path = '/preoutitem/?';
+    var count = 1;
+    var tag_in;
+    var tag_out;
+    var total_weight,total_volume,total_freightfee;
+    var weight_list,volume_list,fee_list,site_list,path_list
+    var text0 = '<tr><td id="row';
+    var text1='">';
+    var text2='<td width="160px"><input type="text" name="item"  style="width:200px" id="item';
+    var text3='"/></td><td><button class="getPro" id="';
+    var text4='"><span class="glyphicon glyphicon-search"></span></button></td><td width="60px"><input type="number" name="itemamount" style="width:50px"/></td>';
+    var text5='<td>{{site}}</td><td>{{freightfee}}</td><td>{{volume}}</td><td>{{weight}}</td><td width="220px"></td>';
+
+    
+    <!-- 增加出库项 -->
+    $("#additem").click(function(e){
+        count = count+1;
+        itemtext = text0+count+text1+count+text2+count+text3+count+text4+text5;
+        $('tbody').append(itemtext);
+        
+    });
+    
+    <!-- 选取sku,新增加的项附加功能,必须要采用on的形式,切记 -->
+    $("tbody").on("click",".getPro",function(){
+        var itemid = $(this).attr("id");
+        newpath = path+itemid;
+        console.log(itemid,newpath)
+        var newWeb=window.open('_blank');
+        newWeb.location = newpath;
+    });
+    <!-- $("tbody").on('click','.getPro',function(){ -->
+        <!-- alert('ok'); -->
+    <!-- }); -->
+
+    
+    <!-- 保存预出库项 -->
+    $("#save").click(function(e){
+        var code = $("#precode").val()
+        var des = $("#description").val()
+        
+        if (!code || !des ){
+            alert("请填写表单所有项目")
+            return false;
+        }
+        else{
+        
+        $.ajax({
+            url:"/preoutstock/",
+            type:"POST",
+            async:false,
+            data:$('#form_preout').serialize(),
+            success:function(data){
+                var data_objs=JSON.parse(data);
+                tag_out = data_objs["tag_out"];
+                total_weight = data_objs["total_weight"];
+                total_volume = data_objs["total_volume"];
+                total_freightfee = data_objs["total_fee"];
+                weight_list = data_objs["weight_list"];
+                volume_list = data_objs["volume_list"];
+                fee_list = data_objs["fee_list"];
+                site_list = data_objs["site_list"];
+                path_list = data_objs["path_list"];
+            }
+        });
+        }
+        if (tag_out == "ok"){
+            $("#totalfee").text(total_freightfee);
+            $('#totalweight').text(total_weight);
+            $('#totalvolume').text(total_volume);
+
+            for (var i=0;i<weight_list.length;i++)
+                {
+                var j=i+1;
+                var location = "row"+j
+                $('#'+location).parent("tr").find("td:eq(4)").text(site_list[i]);
+                $('#'+location).parent("tr").find("td:eq(5)").text(fee_list[i]);
+                $('#'+location).parent("tr").find("td:eq(6)").text(volume_list[i]);
+                $('#'+location).parent("tr").find("td:eq(7)").text(weight_list[i]);
+                $('#'+location).parent("tr").find("td:eq(8)").text(path_list[i]);
+                }
+        }
+        else{
+            alert("no useful data");
+        }
+        
+
+    });
+    <!-- 出库 -->
+    $("#outstock").click(function(e){
+        var pre_code = $("#precode").val();
+        var des = $("#description").val();
+        var get_code = prompt("请输入出库编号");
+        if (!pre_code || !des || !get_code){
+            alert("请填写预出库编号,描述信息及出库编号")
+            return false;
+        }
+        else{
+            $.ajax({
+                url:"/pre2outstock/",
+                type:"POST",
+                async:false,
+                data:$.param({"get_code":get_code})+'&'+$('#form_preout').serialize(),
+                success:function(data){
+                    var data_objs=JSON.parse(data);
+                    tag_out = data_objs["tag_out"];
+                }
+            });
+        }
+        alert(tag_out);
+    });
+    
+    <!-- 把tagpath复制了 -->
+    $("button.getTag").click(function(e){
+        $(this).parent("td").prev().children("input").select();
+        if (document.execCommand('copy')){
+            document.execCommand('copy');
+            
+        }
+    });
+});
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

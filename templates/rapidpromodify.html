@@ -1,0 +1,247 @@
+{% extends 'login/base.html' %}
+{% block title %}产品快速修改{% endblock %}
+
+{% block css %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% csrf_token %}
+     <div style="margin-top: 30px;"><!-- 搜索部分 -->
+         <form method="get" action="." class="form-search" style="height:50px;">
+             <input type="search" placeholder="按 sku\title\description 搜索" name="q" style="height:35px;width:300px;">
+             <button type="reset">重置</button>
+             <button type="submit" >排序或搜索</button></br>
+         
+             <input type="radio" checked="checked" name="order" value="Positive">正序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="order" value="Reverse">倒序</br>
+         
+             <input type="radio" checked="checked" name="specify" value="id">按编号排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="purchasePrice">按Purchase Price排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="dhlShippingFee">按DHL Shipping Fee排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="freightFee">按Freight Fee排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="amazonSalePrice">按Amazon Sale Price排序</br>
+             <input type="radio" name="specify" value="margin">按Margin排序&nbsp;&nbsp;&nbsp;&nbsp;
+             <input type="radio" name="specify" value="marginRate">按MarginRate排序&nbsp;&nbsp;&nbsp;&nbsp;
+         </form>
+    </div>
+
+    <div style="margin-top:100px;">
+        {% for p in producttemps %}
+            {% if forloop.first %}
+            <table class="table table-striped" >
+                <tr>
+                    <th>Code</th>
+                    <th>Site</th>
+                    <th>Image</th>
+                    <th>SKU&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    <th>Title&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    <th>Purchase Price(￥)</th>
+                    <th></th>
+                    <th>DHL Shipping Fee(￥)</th>
+                    <th>Freight Fee(￥)</th>
+                    <th></th>
+                    <th>Amazon Sale Price($)</th>
+                    <th></th>
+                    <th>MARGIN($)</th>
+                    <th>MARGIN Rate(%)</th>
+
+                </tr>
+            {% endif %}
+            <tr>
+                <td id="{{p.id}}">{{p.id}}</td>
+                <td>{{p.site}}</td>
+                <td><img src='{{p.image.url}}' height="50" ></td>
+                <td><a href='{% url "productDetail-url" p.id %}'>{{p.sku}}</td>
+                <td>{{p.title}}</td>
+                <td>{{p.purchasePrice}}</td>
+                <td><button class="getPurchase" value="Change" price="{{p.purchasePrice}}"><span class="glyphicon glyphicon-cog"></span></button></td>
+                <td>{{p.dhlShippingFee}}</td>
+                <td>{{p.freightFee}}</td>
+                <td><button class="getFreightFee" value="Change" fee="{{p.freightFee}}"><span class="glyphicon glyphicon-cog"></span></button></td>
+                <td>{{p.amazonSalePrice}}</td>
+                <td><button class="getAmazon" value="Change" sale="{{p.amazonSalePrice}}"><span class="glyphicon glyphicon-cog"></span></button></td>
+                <td>{{p.margin}}</td>
+                <td>{{p.marginRate}}%</td>
+
+                
+            </tr>
+            {% if forloop.last %}
+            </table>
+            {% endif %}
+            {% empty %}
+            <h3>没有产品信息</h3>
+        {% endfor %}
+    </div>
+
+
+    <nav aria-label="Page navigation"><!-- 导航部分 -->
+      <ul class="pagination">
+
+        {% if producttemps.has_previous %}
+            <li><a href="?page={{ producttemps.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+        {% else %}
+                <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+        {% endif %}    
+
+        {% for i in pageRange %}
+             {% if current_num == i %}
+              <li class="active"><a href="?page={{ i }}">{{ i }}</a></li>
+
+             {% else %}
+              <li><a href="?page={{ i }}">{{ i }}</a></li>
+             {% endif %}
+        {% endfor %}
+
+
+        <li>
+          <a href="#" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+</div>
+{% endblock %}
+
+{% block on_ready %}
+
+$(document).ready(function(){
+    var token = $('input[name=csrfmiddlewaretoken]').val();
+    var new_pprice;
+    var new_freightfee;
+    var new_amazonprice;
+    var new_margin;
+    var new_marginrate;
+    var tag_in;
+    var tag_out;
+    <!-- 修改采购价 -->
+    $("button.getPurchase").click(function(e){
+        var price = $(this).attr('price');
+        var get_pprice = prompt("请输入新的采购价格(rmb)",price);
+        var p_id = $(this).parent("td").parent("tr").find("td:eq(0)").html()
+
+
+        $.ajax({
+            url:"/rapidpromodify/",
+            type:"POST",
+            async:false,
+            data:{csrfmiddlewaretoken: token,"get_pprice":get_pprice,"tag_in":"pprice","p_id":p_id},
+            success:function(data){
+                var data_objs=JSON.parse(data);
+                new_margin = data_objs["new_margin"];
+                new_marginrate = data_objs["new_marginrate"];
+                new_pprice = data_objs["new_pprice"];
+                tag_out = data_objs["tag_out"]
+                }
+            });
+        <!-- 如果输入内容有误,则返回tag跳出函数,不对td进行赋值 -->
+        if (tag_out == "wrong_type"){
+            alert("您输入的数据有误,请检查")
+        }
+        <!-- 修改过的属性值变红,公式值变蓝 -->
+        else{
+            $("#"+p_id).parent("tr").find("td:eq(5)").html(new_pprice).css("color","red");
+            $("#"+p_id).parent("tr").find("td:eq(12)").html(new_margin).css("color","blue");
+            $("#"+p_id).parent("tr").find("td:eq(13)").html(new_marginrate).css("color","blue")
+        }
+
+
+        
+    });
+    <!-- 修改运费 -->
+    $("button.getFreightFee").click(function(e){
+        var fee = $(this).attr('fee');
+        var get_fee = prompt("请输入新的采购价格(rmb)",fee);
+        var p_id = $(this).parent("td").parent("tr").find("td:eq(0)").html()
+
+        $.ajax({
+            url:"/rapidpromodify/",
+            type:"POST",
+            async:false,
+            data:{csrfmiddlewaretoken: token,"get_fee":get_fee,"tag_in":"freightfee","p_id":p_id},
+            success:function(data){
+                var data_objs=JSON.parse(data);
+                new_margin = data_objs["new_margin"];
+                new_marginrate = data_objs["new_marginrate"];
+                new_freightfee = data_objs["new_freightfee"];
+                tag_out = data_objs["tag_out"]
+                }
+            });
+        <!-- 如果输入内容有误,则返回tag跳出函数,不对td进行赋值 -->
+        if (tag_out == "wrong_type"){
+            alert("您输入的数据有误,请检查")
+        }
+        <!-- 修改过的属性值变红,公式值变蓝 -->
+        else{
+            $("#"+p_id).parent("tr").find("td:eq(8)").html(new_freightfee).css("color","red");
+            $("#"+p_id).parent("tr").find("td:eq(12)").html(new_margin).css("color","blue");
+            $("#"+p_id).parent("tr").find("td:eq(13)").html(new_marginrate).css("color","blue")
+        }
+        
+    });
+    
+    <!-- 修改售价 -->
+    $("button.getAmazon").click(function(e){
+        var sale = $(this).attr('sale');
+        var get_sale = prompt("请输入新的采购价格(rmb)",sale);
+        var p_id = $(this).parent("td").parent("tr").find("td:eq(0)").html()
+
+        $.ajax({
+            url:"/rapidpromodify/",
+            type:"POST",
+            async:false,
+            data:{csrfmiddlewaretoken: token,"get_sale":get_sale,"tag_in":"amazonSP","p_id":p_id},
+            success:function(data){
+                var data_objs=JSON.parse(data);
+                new_margin = data_objs["new_margin"];
+                new_marginrate = data_objs["new_marginrate"];
+                new_amazonprice = data_objs["new_amazonprice"];
+                tag_out = data_objs["tag_out"]
+                }
+            });
+        <!-- 如果输入内容有误,则返回tag跳出函数,不对td进行赋值 -->
+        if (tag_out == "wrong_type"){
+            alert("您输入的数据有误,请检查")
+        }
+        <!-- 修改过的属性值变红,公式值变蓝 -->
+        else{
+            $("#"+p_id).parent("tr").find("td:eq(10)").html(new_amazonprice).css("color","red");
+            $("#"+p_id).parent("tr").find("td:eq(12)").html(new_margin).css("color","blue");
+            $("#"+p_id).parent("tr").find("td:eq(13)").html(new_marginrate).css("color","blue")
+        }
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
