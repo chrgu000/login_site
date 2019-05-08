@@ -16,7 +16,7 @@
                 <label for="description">物料信息:</label>
                  <input id="description" type="text" name="description"/></br>
                  <label for="price">采购价:</label>
-                 <input id="price" type="number" name="price" value="0.00"/></br>
+                 <input id="price" type="text" name="price" value="0.00" onkeydown="if(isNaN(value))execCommand('undo')" onkeyup="if(isNaN(value))execCommand('undo')"/></br>
                 <label for="user">入库人:</label>
                 <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
                 选择上传图片:<input type="file" name="image"></br>

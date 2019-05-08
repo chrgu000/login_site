@@ -13,11 +13,11 @@
               {% csrf_token %}
               <h1>批量新增或入库物料</h1>
               <label for="code">入库编号:</label>
-              <input id="code" type="text" name="code"/></br>
+              <input id="code" type="text" name="code"/> <span>&nbsp;&nbsp;&nbsp;&nbsp;Last Code:{{lastcode}}</span> </br>
               <label for="c_time">入库时间:</label>
-              <input for="c_time" type="date" name="c_time"/><br> 
+              <input for="c_time" type="text" name="c_time" value="{{date}}" readonly="readonly"/><br> 
               <label for="description">入库信息:</label>
-              <input for="description" type="text" name="description"/><br> 
+              <input for="description" type="text" name="description"/><span>(选填)</span><br> 
               <label for="user">入库人:</label>
               <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
               <p></p>

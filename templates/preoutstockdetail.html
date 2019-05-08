@@ -28,6 +28,7 @@
                 <table class="table table-striped table-bordered" >
                     <tbody>
                         <tr>
+                            <th></th>
                             <th>序号</th>
                             <th>SKU</th>
                             <th>检索</th>
@@ -40,7 +41,8 @@
                             <th>TAG地址</th>
                         </tr>
                     {% for item in preoutitems %}
-                        <tr>
+                        <tr name="titems">
+                            <td><input type="checkbox" name="ckb" value="v"/></td>
                             <td id="row{{forloop.counter}}">{{forloop.counter}}</td>
                             <td width="160px"><input type="text" name="item"  style="width:200px" id="item{{forloop.counter}}" value="{{item.productName}}"/></td>
                             <td><button class="getPro" id="{{forloop.counter}}"><span class="glyphicon glyphicon-search"></span></button></td>
@@ -55,7 +57,8 @@
                     {% endfor %}
                     </tbody>
                 </table>
-                <button id="additem" class="btn btn-default"">增加预出库项</button></br>
+                <button id="additem" class="btn btn-default"">增加预出库项</button>
+                <button id="delitem" class="btn btn-default"">删除勾选项</button></br>
                 </br>
                 <input type="button" value="保存并计算" id="save" class="btn btn-default" >
                 <input type="reset" value="重置" class="btn btn-default">
@@ -84,7 +87,7 @@ $(document).ready(function(){
     var tag_out;
     var total_weight,total_volume,total_freightfee;
     var weight_list,volume_list,fee_list,site_list,path_list
-    var text0 = '<tr><td id="row';
+    var text0 = '<tr name="titems"><td><input type="checkbox" name="ckb" value="v"/></td><td id="row';
     var text1='">';
     var text2='<td width="160px"><input type="text" name="item"  style="width:200px" id="item';
     var text3='"/></td><td><button class="getPro" id="';
@@ -118,6 +121,7 @@ $(document).ready(function(){
             return false;
         }
         else{
+        console.log($('#form_preout').serialize())
         
         $.ajax({
             url:"/preoutstock/",
@@ -143,16 +147,14 @@ $(document).ready(function(){
             $('#totalweight').text(total_weight);
             $('#totalvolume').text(total_volume);
 
-            for (var i=0;i<weight_list.length;i++)
-                {
-                var j=i+1;
-                var location = "row"+j
-                $('#'+location).parent("tr").find("td:eq(4)").text(site_list[i]);
-                $('#'+location).parent("tr").find("td:eq(5)").text(fee_list[i]);
-                $('#'+location).parent("tr").find("td:eq(6)").text(volume_list[i]);
-                $('#'+location).parent("tr").find("td:eq(7)").text(weight_list[i]);
-                $('#'+location).parent("tr").find("td:eq(8)").text(path_list[i]);
-                }
+            $("tr[name='titems']").each(function(i){
+                $(this).find("td:eq(5)").text(site_list[i]);
+                $(this).find("td:eq(6)").text(fee_list[i]);
+                $(this).find("td:eq(7)").text(volume_list[i]);
+                $(this).find("td:eq(8)").text(weight_list[i]);
+                $(this).find("td:eq(9)").text(path_list[i]);
+                
+            });
         }
         else{
             alert("no useful data");
@@ -182,7 +184,13 @@ $(document).ready(function(){
         alert(tag_out);
     });
 
+    $("#delitem").click(function(){
 
+        $("input[name='ckb']:checked").each(function(i){
+            $(this).parent("td").parent("tr").remove();
+        });
+
+    });
 
 
 

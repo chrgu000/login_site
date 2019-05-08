@@ -119,6 +119,19 @@ function getIdFromUrl(){
     return getid;
     };
 });
+
+    jQuery.expr[':'].Contains = function(a, i, m) {    
+      return jQuery(a).text().toUpperCase()    
+          .indexOf(m[3].toUpperCase()) >= 0;    
+    };    
+      
+    // OVERWRITES old selecor    
+    jQuery.expr[':'].contains = function(a, i, m) {    
+      return jQuery(a).text().toUpperCase()    
+          .indexOf(m[3].toUpperCase()) >= 0;    
+    };  
+
+
     function txtSearch()
     {
          <!-- //遍历移除b标签，防止第二次搜索bug -->

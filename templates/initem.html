@@ -63,6 +63,7 @@
         <div class="search bar1">
             <form>
                 <input type="text" id="txtonsearch" onChange="txtSearch()" placeholder="请输入您要搜索的内容...">
+
                 <!-- <button type="submit"><a href="#">搜索</a></button> -->
             </form>
         </div>
@@ -123,6 +124,17 @@ $(document).ready(function(){
         return getid;
     };
 });
+
+    jQuery.expr[':'].Contains = function(a, i, m) {    
+      return jQuery(a).text().toUpperCase()    
+          .indexOf(m[3].toUpperCase()) >= 0;    
+    };    
+      
+    // OVERWRITES old selecor    
+    jQuery.expr[':'].contains = function(a, i, m) {    
+      return jQuery(a).text().toUpperCase()    
+          .indexOf(m[3].toUpperCase()) >= 0;    
+    };  
 
     function txtSearch()
     {

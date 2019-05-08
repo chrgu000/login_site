@@ -13,11 +13,11 @@
               {% csrf_token %}
               <h1>批量出库产品</h1>
               <label for="code">出库编号:</label>
-              <input id="code" type="text" name="code"/></br>
-              <label for="c_time">出库时间:</label>
-              <input for="c_time" type="date" name="c_time"/><br> 
+              <input id="code" type="text" name="code"/><span>&nbsp;&nbsp;&nbsp;&nbsp;Last Code:{{lastcode}}</span></br>
               <label for="description">出库信息:</label>
               <input for="description" type="text" name="description"/><br> 
+              <label for="c_time">出库时间:</label>
+              <input for="c_time" type="text" name="c_time" value="{{date}}" readonly="readonly"/><br>
               <label for="user">出库人:</label>
               <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
               <p></p>

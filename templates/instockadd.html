@@ -12,7 +12,7 @@
               {% csrf_token %}
               
                 <label for="code">入库编号:</label>
-                <input id="code" type="text" name="code"/></br>
+                <input id="code" type="text" name="code"/> <span>&nbsp;&nbsp;&nbsp;&nbsp;Last Code:{{lastcode}}</span> </br>
                 <label for="c_time">入库时间:</label>
                 <input for="c_time" type="date" name="c_time"/><br> 
                 <label for="description">入库信息:</label>

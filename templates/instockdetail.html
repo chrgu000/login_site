@@ -21,6 +21,7 @@
                 {% for item in initems %}
                 <table class="table table-striped">
                     <tr>
+                    <td>{{forloop.counter}}</td>
                     <td>{{ item.materialName }}</td>
                     <td>{{ item.amountIn }}</td>
                     </tr>
