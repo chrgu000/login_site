@@ -6,7 +6,7 @@
 
 {% block content %}
     <div class="container" align=center>
-        <div class="col-md-4 col-md-offset-4">
+        <div class="col-md-8 col-md-offset-3">
             {% if instock %}
                 <table class="table table-striped">
                 <tr><td align=center>编号:{{instock.code}}</td></tr>
@@ -17,13 +17,21 @@
             {% else %}
             <h2>找不到指定的产品</h2>
             {% endif %}
-            {% if initems %}
-                {% for item in initems %}
+
                 <table class="table table-striped">
                     <tr>
-                    <td>{{forloop.counter}}</td>
-                    <td>{{ item.materialName }}</td>
-                    <td>{{ item.amountIn }}</td>
+                        <th>序号</th>
+                        <th>唯一识别码</th>
+                        <th>入库数量</th>
+                        <th>当前库存</th>
+                    </tr>
+            {% if initems %}
+                {% for item in initems %}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{ item.materialName }}</td>
+                        <td>{{ item.amountIn }}</td>
+                        <td>{{item.materialName.amount}}</td>
                     </tr>
                 {% endfor %}
                 </table>

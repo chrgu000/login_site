@@ -1,6 +1,6 @@
 {% extends 'login/base.html' %}
 {% block title %}
-    {{preoutstock.code | default:"找不到指定的对象"}}
+    code:{{preoutstock.pcode}}
 {% endblock %}
 
 {% block css %}
@@ -13,16 +13,17 @@
             <form id="form_preout" method="POST" action="##" onsubmit="return false">
                 {% csrf_token %}
                 {% if message %}
-                    <div class="alert alert-warning">{{ message }}</div>
+                    <div class="alert alert-warning"><h3>{{ message }}</h3></div>
                 {% endif %}
-                <label for="precode">预出库编号:</label>
+                <label for="precode">预出库编号:<span>&nbsp;&nbsp;&nbsp;&nbsp;Last Code:{{lastcode}}</span></label>
+                <p><span><b>&nbsp;&nbsp;&nbsp;&nbsp;Last Outstock Code:{{outcode}}</b></span></p>
                 <input id="precode" type="text" name="precode" class="form-control" value="{{preoutstock.pcode}}"/></br>
                 <label for="description">描述信息:</label>
                 <input type="text" name="description" class="form-control" id="description" value="{{preoutstock.pdescription}}"/><br>
                 <label for="c_time">创建/修改时间:</label>
                 <input type="text" name="c_time" readonly="readonly" class="form-control" value="{{preoutstock.ptime}}"/><br> 
                 <label for="user">创建/修改人:</label>
-                <input type="text" name="user" value="{{user}}" readonly="readonly" class="form-control" value="{{preoutstock.user}}"/></br>
+                <input type="text" name="user" readonly="readonly" class="form-control" value="{{preoutstock.user}}"/></br>
                 <label for="items">添加出库项:(请点击<font color="red">"保存并计算"</font>按钮获取运费等详细信息)</label></br>
                 
                 <table class="table table-striped table-bordered" >
@@ -46,7 +47,7 @@
                             <td id="row{{forloop.counter}}">{{forloop.counter}}</td>
                             <td width="160px"><input type="text" name="item"  style="width:200px" id="item{{forloop.counter}}" value="{{item.productName}}"/></td>
                             <td><button class="getPro" id="{{forloop.counter}}"><span class="glyphicon glyphicon-search"></span></button></td>
-                            <td width="60px"><input type="number" name="itemamount" style="width:50px" value="{{item.amount}}"/></td>
+                            <td width="100px"><input type="number" name="itemamount" style="width:80px" value="{{item.amount}}"/></td>
                             <td>{{item.productName.site}}</td>
                             <td></td>
                             <td></td>
@@ -67,12 +68,14 @@
         </div>
         <div class="col-md-2">
             <h1>总运费:</h1>
-            <h1><span id="totalfee">{{preoutstock.total_freightfee}}</span>元</h1>
+            <h1><span id="totalfee">0.00</span>元</h1>
             </br>
             <h2>总重量:</h2>
-            <h2><span id="totalweight">{{preoutstock.total_volume}}</span>kg</h2>
-            <h2>总体积:</h1>
-            <h2><span id="totalvolume">{{preoutstock.total_weight}}</span>m<sup>3</sup></h2>
+            <h2><span id="totalweight">0.00</span>kg</h2>
+            <h2>总体积:</h2>
+            <h2><span id="totalvolume">0.000</span>m<sup>3</sup></h2>
+            <h2>总数量:</h2>
+            <h2><span id="totalnum">0</span></h2>
         </div>
     </div>
 </div>
@@ -91,15 +94,16 @@ $(document).ready(function(){
     var text1='">';
     var text2='<td width="160px"><input type="text" name="item"  style="width:200px" id="item';
     var text3='"/></td><td><button class="getPro" id="';
-    var text4='"><span class="glyphicon glyphicon-search"></span></button></td><td width="60px"><input type="number" name="itemamount" style="width:50px"/></td>';
+    var text4='"><span class="glyphicon glyphicon-search"></span></button></td><td width="100px"><input type="number" name="itemamount" style="width:80px"/></td>';
     var text5='<td>{{site}}</td><td>{{freightfee}}</td><td>{{volume}}</td><td>{{weight}}</td><td width="220px"></td>';
     
     <!-- 增加出库项 -->
     $("#additem").click(function(e){
-        count = count+1;
-        itemtext = text0+count+text1+count+text2+count+text3+count+text4+text5;
-        $('tbody').append(itemtext);
-        
+        for (var i=0;i<3;i++){
+            count = count+1;
+            itemtext = text0+count+text1+count+text2+count+text3+count+text4+text5;
+            $('tbody').append(itemtext);
+        }
     });
 
     <!-- 选取sku,新增加的项附加功能,必须要采用on的形式,切记 -->
@@ -139,6 +143,7 @@ $(document).ready(function(){
                 fee_list = data_objs["fee_list"];
                 site_list = data_objs["site_list"];
                 path_list = data_objs["path_list"];
+                total_num = data_objs["total_num"];
             }
         });
         }
@@ -146,6 +151,7 @@ $(document).ready(function(){
             $("#totalfee").text(total_freightfee);
             $('#totalweight').text(total_weight);
             $('#totalvolume').text(total_volume);
+            $('#totalnum').text(total_num);
 
             $("tr[name='titems']").each(function(i){
                 $(this).find("td:eq(5)").text(site_list[i]);

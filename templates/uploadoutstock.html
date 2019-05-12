@@ -7,7 +7,7 @@
           <form name="uploadmaterial-form" class='form-uploadfiles' action="." method="post" enctype="multipart/form-data">
 
               {% if message %}
-                  <div class="alert alert-warning">{{ message }}</div>
+                  <div class="alert alert-warning"><h3>{{ message }}</h3></div>
               {% endif %}
 
               {% csrf_token %}
@@ -19,7 +19,7 @@
               <label for="c_time">出库时间:</label>
               <input for="c_time" type="text" name="c_time" value="{{date}}" readonly="readonly"/><br>
               <label for="user">出库人:</label>
-              <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
+              <input type="text" name="user" value="{{user}}" readonly="readonly"/></br>
               <p></p>
               选择上传文件:<input type="file" name="files"></br>
               <button type="reset" class="btn btn-default pull-left">重置</button>

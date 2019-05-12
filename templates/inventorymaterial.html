@@ -16,7 +16,8 @@
         </div>
         <div class="head" >
             <ul class="tab_header" id="search" >
-                <li class="{% if sort == '' %}active{% endif %}" style="float: left;"><a href="?q={{q}}">按编号排序</a></li>
+                <li class="{% if sort == 'id' %}active{% endif %}" style="float: left;"><a href="?sort=id&q={{q}}">按编号排序</a></li>
+                <li class="{% if sort == 'iddecrease' %}active{% endif %}" style="float: left;"><a href="?sort=iddecrease&q={{q}}">按编号倒序排列</a></li>
                 <li class="{% if sort == 'uid' %}active{% endif %}" style="float: left;"><a href="?sort=uid&q={{q}}">按唯一识别码排序</a></li>
                 <li class="{% if sort == 'amountincrease' %}active{% endif %}" style="float: left;"><a href="?sort=amountincrease&q={{q}}">按库存递增排序</a></li>
                 <li class="{% if sort == 'amountdecrease' %}active{% endif %}" style="float: left;"><a href="?sort=amountdecrease&q={{q}}">按库存递减排序</a></li>

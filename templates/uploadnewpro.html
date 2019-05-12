@@ -7,7 +7,7 @@
         <form name="uploadmaterial-form" class='form-uploadfiles' action="." method="post" enctype="multipart/form-data">
 
             {% if message %}
-                <div class="alert alert-warning">{{ message }}</div>
+                <div class="alert alert-warning"><h3>{{ message }}</h3></div>
             {% endif %}
 
             {% csrf_token %}

@@ -2,46 +2,51 @@
 {% block title %}新增入库单{% endblock %}
 {% block content %}
     <div class="container">
-        <!-- <div class="col-md-6 col-md-offset-3"> -->
-        <div class="col-md-8 col-md-offset-2">
-            <form name="instockaddform" class="form-instockadd" action="." method="post" enctype="multipart/form-data">
+        <div class="col-md-10 ">
+            <form id="instockaddform" action="##" method="post" onsubmit="return false">
               {% if message %}
-                  <div class="alert alert-warning">{{ message }}</div>
+                  <div class="alert alert-warning"><h3>{{ message }}</h3></div>
               {% endif %}
               
               {% csrf_token %}
               
-                <label for="code">入库编号:</label>
-                <input id="code" type="text" name="code"/> <span>&nbsp;&nbsp;&nbsp;&nbsp;Last Code:{{lastcode}}</span> </br>
-                <label for="c_time">入库时间:</label>
-                <input for="c_time" type="date" name="c_time"/><br> 
+                <label for="code">入库编号:</label><span>&nbsp;&nbsp;&nbsp;&nbsp;<b>Last Code:{{lastcode}}</b></span> 
+                <input id="code" type="text" name="code" class="form-control"/> </br>
                 <label for="description">入库信息:</label>
-                <input for="description" type="text" name="description"/><br> 
+                <input id="description" type="text" name="description" class="form-control"/><br> 
+                <label for="c_time">入库时间:</label>
+                <input id="c_time" name="c_time" value="{{date}}" readonly="readonly" class="form-control"/><br>
                 <label for="user">入库人:</label>
-                <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
+                <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly" class="form-control"/></br>
 
                 <label for="items">添加入库项:</label></br>
-
-                <div id="items" name="initems">
-                    <ol>
-                    <li>
-                        <input type="number" name="item" id="item1" /><input type="button" class="getMatId" value="选择物料" id="1" />
-                        <input type="number" name="itemamount"/>入库数量&nbsp;&nbsp;<span id="p1"></span>
-                    </li>
-                    <li>
-                        <input type="number" name="item" id="item2"/><input type="button" class="getMatId" value="选择物料" id="2"/>
-                        <input type="number" name="itemamount"/>入库数量&nbsp;&nbsp;<span id="p2"></span>
-                    </li>
-                    <li>
-                        <input type="number" name="item" id="item3"/><input type="button" class="getMatId" value="选择物料" id="3"/>
-                        <input type="number" name="itemamount"/>入库数量&nbsp;&nbsp;<span id="p3"></span>
-                    </li>
-                    </ol>
-                </div>
-                <input type="button" id="additem" value="增加入库项" /></br>
+                <table class="table table-striped table-bordered" >
+                    <tbody>
+                        <tr>
+                            <th></th>
+                            <th>序号</th>
+                            <th>唯一识别码</th>
+                            <th>搜索</th>
+                            <th>数量</th>
+                            <th>当前库存</th>
+                            <th>详细信息</th>
+                        </tr>
+                        <tr name="titems">
+                            <td><input type="checkbox" name="ckb" value="v"/></td>
+                            <td id="row1">1</td>
+                            <td width="320px"><input type="text" name="item"  style="width:300px" id="item1"/></td>
+                            <td><button class="getPro" id="1"><span class="glyphicon glyphicon-search"></span></button>
+                            <td width="100px"><input type="number" name="itemamount" style="width:80px"/></td>
+                            <td width="100px" id="amount1"></td>
+                            <td width="400px" id="des1"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button id="additem" class="btn btn-default"">增加预出库项</button>
+                <button id="delitem" class="btn btn-default"">删除勾选项</button></br>
                 </br>
-                <input type="submit" value="提交"/>
-                <input type="reset" value="清除"/>
+                <input type="button" value="入库" id="instock" class="btn btn-default" >
+                <input type="reset" value="重置" class="btn btn-default">
             </form>
         </div>
     </div> <!-- /container -->
@@ -49,41 +54,69 @@
 
 
 {% block on_ready %}
-<!-- 添加的入库项,为了添加id,分成了3份 -->
-<!-- var itemtext = '<li><input type="text" name="item" id="item"/><input type="button" class="getMatId" value="选择物料" id=""/><input type="text" name="itemamount"/>入库数量</li>'; -->
-var itemtext1 = '<li><input type="number" name="item" id="item';
-var itemtext2 = '"/><input type="button" class="getMatId" value="选择物料" id="';
-var itemtext3 = '"/><input type="number" name="itemamount"/>入库数量&nbsp;&nbsp;<span id="p';
-var itemtext4 = '"></span></li>';
-
-
-
-
-<!-- 将被打开的物料选择页 -->
-<!-- var path = 'http://192.168.0.3:8000/initem/'; -->
-var path = '/initem/?';
-var count = 3;
-
 $(document).ready(function(){
-    <!-- 增加新的入库项,并赋予动态的id和itemID -->
+    var count = 1;
+    var tag_in,tag_out;
+    var path = '/initem/?';
+    var text1 = '<tr name="titems"><td><input type="checkbox" name="ckb" value="v"/></td><td id="row';
+    var text2 = '">';
+    var text3 = '</td><td width="320px"><input type="text" name="item"  style="width:300px" id="item';
+    var text4 = '"/></td><td><button class="getPro" id="';
+    var text5 = '"><span class="glyphicon glyphicon-search"></span></button><td width="100px"><input type="number" name="itemamount" style="width:80px"/><td width="100px" id="amount';
+    var text6 ='"></td></td><td width="400px" id="des';
+    var text7 = '"></td></tr>';
+    <!-- 增加入库项 -->
     $("#additem").click(function(e){
-        count = count+1;
-        itemtext = itemtext1+count+itemtext2+count+itemtext3+count+itemtext4;
-        $("ol").append(itemtext);
-        console.log(itemtext);
+        for (var i=0;i<3;i++){
+            count = count+1;
+            itemtext = text1+count+text2+count+text3+count+text4+count+text5+count+text6+count+text7;
+            $('tbody').append(itemtext);
+        };
+    });
+
+    <!-- 选取物料,新增加的项附加功能,必须要采用on的形式,切记 -->
+    $("tbody").on("click",".getPro",function(){
+        var itemid = $(this).attr("id");
+        newpath = path+itemid;
+        console.log(itemid,newpath)
+        var newWeb=window.open('_blank');
+        newWeb.location = newpath;
     });
     
-    <!-- 动态的向新添加的项目添加事件 ,打开窗口,向子窗口传递itemid参数-->
-    $("ol").on("click",".getMatId",function(e){
-    var itemid = $(this).attr("id");
-    <!-- 打开新窗口,将itemid附加在url里向后传递 -->
-    newpath = path+itemid;
-    window.open(newpath,"弹出页面");
-    
+    <!-- 删除勾选项 -->
+    $("#delitem").click(function(){
+
+        $("input[name='ckb']:checked").each(function(i){
+            $(this).parent("td").parent("tr").remove();
+        });
+
     });
+    
+    <!-- 数据检查 -->
+    $("#instock").click(function(e){
+        var code = $("#code").val();
+        var des = $("#description").val();
+        
+        if (!code || !des ){
+            alert("请填写表单所有项目")
+            return false;
+        }
+        else {
+            $.ajax({
+                url:"/instockadd/",
+                type:"POST",
+                async:false,
+                data:$('#instockaddform').serialize(),
+                success:function(data){
+                    var data_objs=JSON.parse(data);
+                    tag_out = data_objs["tag_out"];
+                }
+            });
+        }
+        alert(tag_out)
+    });
+
 
 });
-
-
 {% endblock %}
 

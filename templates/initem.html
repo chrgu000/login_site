@@ -105,12 +105,15 @@
 
 $(document).ready(function(){
     $("input.selectItem").click(function(e){
-        var selectid =  $(this).attr('id');
         var itemid = "item"+getIdFromUrl();
         var selectname = $(this).attr('name');
-        var itemname = "p"+getIdFromUrl();
-        window.opener.document.getElementById(itemid).value=selectid;
-        window.opener.document.getElementById(itemname).innerHTML=selectname;
+        var desid = "des"+getIdFromUrl();
+        var description = $(this).parent("td").parent("tr").find("td:eq(3)").text();
+        var amount = $(this).parent("td").parent("tr").find("td:eq(2)").text();
+        var amountid = "amount"+getIdFromUrl();
+        window.opener.document.getElementById(desid).innerText=description
+        window.opener.document.getElementById(itemid).value=selectname;
+        window.opener.document.getElementById(amountid).innerText=amount;
         window.close();
     });
 
