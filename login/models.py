@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.text import force_text
 from django.db import models
 import time,os
-# from filer.fields.image  import FilerImageField
+## from filer.fields.image  import FilerImageField
 
 # Create your models here.
 
@@ -93,7 +93,7 @@ class Uploadfiles(models.Model):
 class Material(models.Model):
     #测试物料表
     mName = models.CharField(_("物料名称"),max_length=50)
-    mAmount = models.PositiveIntegerField(_("库存数量"),blank=True,null=True,default=0)
+    mAmount = models.IntegerField(_("库存数量"),blank=True,null=True,default=0)
     
     def __unicode__(self):
         return self.mName
@@ -102,12 +102,12 @@ class Material(models.Model):
     
 class InventoryMaterial(models.Model):
 
-    amount = models.PositiveIntegerField(_("库存数量"),blank=True,null=True,default=0)
+    amount = models.IntegerField(_("库存数量"),blank=True,null=True,default=0)
     description = models.TextField(_("详细信息"),max_length=200,blank=True,null=True)
     uniqueId =  models.CharField(verbose_name=_("唯一识别码"),max_length=100,blank=True,null=True)
     userPurchase = models.ForeignKey(User,verbose_name=_("采购人员"),blank=True,null=True)
     image = models.ImageField(_("图片"),upload_to='photos',blank=True,null=True,default="/photos/americanfootball.jpg")
-    price = models.DecimalField(verbose_name=_("采购价(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
+    price = models.DecimalField(verbose_name=_("采购价(rmb)"),max_digits=5,decimal_places=2,blank=True,null=True,default=0)
 
     def __unicode__(self):
         return self.uniqueId
@@ -160,31 +160,31 @@ class ProductTemp(models.Model):
     sku = models.CharField(verbose_name=_("SKU"),unique=True,max_length=200,blank=True,null=True)    
     childAsin = models.CharField(verbose_name=_("child ASIN"),max_length=50,blank=True,null=True)
     title = models.TextField(_("Title"),max_length=400,blank=True,null=True)
-    purchasePrice = models.DecimalField(verbose_name=_("采购价格(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    weight = models.DecimalField(verbose_name=_("包装重量(kg)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
-    length = models.DecimalField(verbose_name=_("包装尺寸长(cm)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    width = models.DecimalField(verbose_name=_("包装尺寸宽(cm)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    height = models.DecimalField(verbose_name=_("包装尺寸高(cm)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    volumeWeight = models.DecimalField(verbose_name=_("包装体积重(kg)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
-    dhlShippingFee = models.DecimalField(verbose_name=_("DHL海运费(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    packageFee = models.DecimalField(verbose_name=_("物料费(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    opFee = models.DecimalField(verbose_name=_("运营费(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    currency = models.DecimalField(verbose_name=_("汇率(us-chn)"),max_digits=10,decimal_places=5,blank=True,null=True,default=0)
-    fbaFullfillmentFee = models.DecimalField(verbose_name=_("FBA运费(dollar)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    shrinkage = models.DecimalField(verbose_name=_("产品损耗(dollar)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    amazonReferralFee = models.DecimalField(verbose_name=_("amazon平台费(%)"),max_digits=6,decimal_places=2,blank=True,null=True,default=0)
-    payoneerServiceFee = models.DecimalField(verbose_name=_("Payoneer服务费(%)"),max_digits=6,decimal_places=2,blank=True,null=True,default=0)
+    purchasePrice = models.DecimalField(verbose_name=_("采购价格(rmb)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    weight = models.DecimalField(verbose_name=_("包装重量(kg)"),max_digits=15,decimal_places=3,blank=True,null=True,default=0)
+    length = models.DecimalField(verbose_name=_("包装尺寸长(cm)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    width = models.DecimalField(verbose_name=_("包装尺寸宽(cm)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    height = models.DecimalField(verbose_name=_("包装尺寸高(cm)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    volumeWeight = models.DecimalField(verbose_name=_("包装体积重(kg)"),max_digits=15,decimal_places=3,blank=True,null=True,default=0)
+    dhlShippingFee = models.DecimalField(verbose_name=_("DHL海运费(rmb)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    packageFee = models.DecimalField(verbose_name=_("物料费(rmb)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    opFee = models.DecimalField(verbose_name=_("运营费(rmb)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    currency = models.DecimalField(verbose_name=_("汇率(us-chn)"),max_digits=15,decimal_places=5,blank=True,null=True,default=0)
+    fbaFullfillmentFee = models.DecimalField(verbose_name=_("FBA运费(dollar)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    shrinkage = models.DecimalField(verbose_name=_("产品损耗(dollar)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    amazonReferralFee = models.DecimalField(verbose_name=_("amazon平台费(%)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    payoneerServiceFee = models.DecimalField(verbose_name=_("Payoneer服务费(%)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
     
-    amazonSalePrice = models.DecimalField(verbose_name=_("售价(dollar)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
-    margin = models.DecimalField(verbose_name=_("利润(dollar)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
-    marginRate = models.DecimalField(verbose_name=_("利润率(%)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
+    amazonSalePrice = models.DecimalField(verbose_name=_("售价(dollar)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
+    margin = models.DecimalField(verbose_name=_("利润(dollar)"),max_digits=15,decimal_places=3,blank=True,null=True,default=0)
+    marginRate = models.DecimalField(verbose_name=_("利润率(%)"),max_digits=15,decimal_places=3,blank=True,null=True,default=0)
     productCostPercentage = models.DecimalField(verbose_name=_("产品成本(%)"),max_digits=6,decimal_places=2,blank=True,null=True,default=0)
     image = models.ImageField(_("图片"),upload_to='photos',blank=True,null=True,default='photos/americanfootball_NSqvub1.jpg ')
     description = models.TextField(_("中文备注"),max_length=200,blank=True,null=True)
     creater = models.ForeignKey(User,blank=True,null=True,verbose_name=_("创建人员"))
     c_time = models.CharField(verbose_name=_("创建时间"),max_length=50,blank=True,null=True)
-    adcost = models.DecimalField(verbose_name=_("广告费(dollar)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0) 
-    freightFee = models.DecimalField(verbose_name=_("实际运费(%)"),max_digits=6,decimal_places=2,blank=True,null=True,default=0)
+    adcost = models.DecimalField(verbose_name=_("广告费(dollar)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0) 
+    freightFee = models.DecimalField(verbose_name=_("实际运费(%)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
     tagpath = models.CharField(verbose_name=_("标签地址"),max_length=150,blank=True,null=True)
     
     def __unicode__(self):
@@ -206,9 +206,9 @@ class OutStock(models.Model):
     c_time = models.CharField(verbose_name=_("入库时间"),max_length=50)
     description = models.TextField(_("出库信息"),max_length=200,blank=True,null=True)
     userOutstock = models.ForeignKey(User,blank=True,null=True,verbose_name=_("出库人员"))
-    total_weight = models.DecimalField(verbose_name=_("总重量(kg)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
-    total_volume = models.DecimalField(verbose_name=_("总体积(m3)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
-    total_freightfee = models.DecimalField(verbose_name=_("总运费(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
+    total_weight = models.DecimalField(verbose_name=_("总重量(kg)"),max_digits=15,decimal_places=3,blank=True,null=True,default=0)
+    total_volume = models.DecimalField(verbose_name=_("总体积(m3)"),max_digits=15,decimal_places=3,blank=True,null=True,default=0)
+    total_freightfee = models.DecimalField(verbose_name=_("总运费(rmb)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
 
     def __unicode__(self):
         return self.description
@@ -221,9 +221,9 @@ class OutItem(models.Model):
     site = models.CharField(verbose_name=_("站点"),max_length=30,blank=True,null=True)
     productName = models.ForeignKey(ProductTemp,verbose_name=_("产品名称"))
     amountOut =  models.PositiveIntegerField(_("出库数量"),blank=True,null=True)
-    freightfee = models.DecimalField(_("运费"),blank=True,null=True,max_digits=6,decimal_places=2)
-    weight = models.DecimalField(_("包装重量(kg)"),blank=True,null=True,max_digits=6,decimal_places=3)
-    volume = models.DecimalField(_("包装体积(m3)"),blank=True,null=True,max_digits=6,decimal_places=3)
+    freightfee = models.DecimalField(_("运费"),blank=True,null=True,max_digits=15,decimal_places=2)
+    weight = models.DecimalField(_("包装重量(kg)"),blank=True,null=True,max_digits=15,decimal_places=3)
+    volume = models.DecimalField(_("包装体积(m3)"),blank=True,null=True,max_digits=15,decimal_places=3)
     def __unicode__(self):
         return self.prodcutName
 
@@ -259,9 +259,9 @@ class PreOutstock(models.Model):
     ptime = models.CharField(verbose_name=_("编辑时间"),max_length=50)
     pdescription = models.TextField(_("备注信息"),max_length=200,blank=True,null=True)
     user = models.ForeignKey(User,blank=True,null=True,verbose_name=_("操作人员"))
-    total_weight = models.DecimalField(verbose_name=_("总重量(kg)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
-    total_volume = models.DecimalField(verbose_name=_("总体积(m3)"),max_digits=10,decimal_places=3,blank=True,null=True,default=0)
-    total_freightfee = models.DecimalField(verbose_name=_("总运费(rmb)"),max_digits=10,decimal_places=2,blank=True,null=True,default=0)
+    total_weight = models.DecimalField(verbose_name=_("总重量(kg)"),max_digits=15,decimal_places=3,blank=True,null=True,default=0)
+    total_volume = models.DecimalField(verbose_name=_("总体积(m3)"),max_digits=15,decimal_places=3,blank=True,null=True,default=0)
+    total_freightfee = models.DecimalField(verbose_name=_("总运费(rmb)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
 
     def __unicode__(self):
         return self.pcode

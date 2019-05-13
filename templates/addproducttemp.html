@@ -3,17 +3,17 @@
 
 {% block content %}
     <div class="container">
-        <div class="col-md-7 col-md-offset-2">
+        <div class="col-md-9 col-md-offset-2">
             <form name="addproducttempform" class="form-addproducttemp" action="." method="post" enctype="multipart/form-data">
               {% if message %}
-                  <div class="alert alert-warning">{{ message }}</div>
+                  <div class="alert alert-warning"><h3>{{ message }}!</h3></div>
               {% endif %}
               {% csrf_token %}
                 <h3>必填项目</h3>
                 <label for="user">创建人:</label>
-                <input type="text" name="user" value="{{user_obj.name}}" readonly="readonly"/></br>
+                <input type="text" name="user" value="{{user}}" readonly="readonly"/></br>
                 <label for="c_time">创建时间:</label>
-                <input for="c_time" type="date" name="c_time"/><br> 
+                <input type="text" name="c_time" value="{{date}}" readonly="readonly"/><br> 
                 
                 <label for="site">站点:</label>
                 <select name="site">
@@ -119,7 +119,7 @@ var itemtext4 = '"></span></li>';
 
 <!-- 将被打开的物料选择页 -->
 <!-- var path = 'http://192.168.0.3:8000/initem/'; -->
-var path = '/initem/?';
+var path = '/matitem/?';
 var count = 3;
 
 $(document).ready(function(){

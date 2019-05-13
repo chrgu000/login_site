@@ -46,6 +46,7 @@ urlpatterns = [
     # url(r'^instockadd/',views.inStockAdd),
     url(r'^instockadd/',views.Instockadd.as_view(),name='instock_add'),
     url(r'^initem/',views.inItem),
+    url(r'^matitem/',views.matItem),
     url(r'^uploadmaterial/',views.Uploadmaterial.as_view(),name='im_upload'),
     #Downside is product and its relationship with material
     url(r'^productlist/',views.Productlist.as_view(),name='pt_list'),

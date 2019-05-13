@@ -502,6 +502,10 @@ def inItem(request):
     inventorymaterials = models.InventoryMaterial.objects.all().order_by("uniqueId")
     return render(request,"initem.html",locals())
 
+def matItem(request):
+    inventorymaterials = models.InventoryMaterial.objects.all().order_by("uniqueId")
+    return render(request,"matitem.html",locals())
+
 def hash_code(s, salt='mysite'):# 加点盐
     h = hashlib.sha256()
     s += salt
@@ -770,17 +774,18 @@ class Addproducttemp(View):
             return redirect('/index')
         message = "请填写表单"
         user = request.session.get('user_name','None')
-        user_obj = models.User.objects.get(name=user)
         sites = models.Site.objects.all()
+        date = getTime()
         return render(request,'addproducttemp.html',locals())
         
     def post(self,request):
         if not request.session.get('is_login',None):
             return redirect('/index')
-            
         user = request.session.get('user_name','None')
-        user_obj = models.User.objects.get(name=user)
+        sites = models.Site.objects.all()
+        date = getTime()
         
+        user_obj = models.User.objects.get(name=user)
         new_sku = request.POST.get("sku")
         new_childasin = request.POST.get("childasin")
         new_title = request.POST.get("title")
@@ -811,19 +816,19 @@ class Addproducttemp(View):
         pageNow = "新增产品页"
         
         if new_sku =="" or new_childasin=="" or new_title=="" or new_description=="" or new_date=="":
-            error_msg ="未完成表单必填内容"
-            addErrorlog(request,error_msg,pageNow)
-            return render(request,'error.html',locals())
+            message ="未完成表单必填内容"
+            addErrorlog(request,message,pageNow)
+            return render(request,'addproducttemp.html',locals())
         elif not new_image:
-            error_msg ="未上传产品图片"
-            addErrorlog(request,error_msg,pageNow)
-            return render(request,'error.html',locals())
+            message ="未上传产品图片"
+            addErrorlog(request,message,pageNow)
+            return render(request,'addproducttemp.html',locals())
         else:
             sku_exist = models.ProductTemp.objects.filter(sku__contains =str(new_sku))
             if sku_exist:
-                error_msg =new_sku+":sku重复,无法录入"
-                addErrorlog(request,error_msg,pageNow)
-                return render(request,'error.html',locals())
+                message =new_sku+":sku重复,无法录入"
+                addErrorlog(request,message,pageNow)
+                return render(request,'addproducttemp.html',locals())
             else:
                 if purchaseprice =="0.00" or weight=="0.000" or length=="0.00" or width=="0.00" or height=="0.00" or volumeweight=="0.000" or packagefee=="0.00"\
                     or opfee=="0.00" or fbafee=="0.00" or amazonfee=="0.00" or payserfee=="0.00" or adcost=="0.00" or amazonprice=="0.00":
@@ -840,16 +845,21 @@ class Addproducttemp(View):
                         if item==u'' or itemamount==u'':
                             pass
                         else:
-                            item_str=filter(str.isdigit,item.encode("utf-8"))
-                            item_id = int(item_str)
-                            item_amount_str=filter(str.isdigit,itemamount.encode("utf-8"))
-                            item_amount = int(item_amount_str)
-                            # 根据返回的物料id ,找出对应的物料对象
-                            material_obj = models.InventoryMaterial.objects.get(id=item_id)
-                            # 创建产品物料的多对多关系对象
-                            pmrelation_obj = models.ProductMaterial.objects.create(pmMaterial=material_obj,pmProduct=product_obj,pmAmount=item_amount)
-                    error_msg = "产品已创建,因备选内容不完整,故无法产生公式项"
-                    return render(request,'error.html',locals())
+                            try:
+                                item_str=filter(str.isdigit,item.encode("utf-8"))
+                                item_id = int(item_str)
+                                item_amount_str=filter(str.isdigit,itemamount.encode("utf-8"))
+                                item_amount = int(item_amount_str)
+                                # 根据返回的物料id ,找出对应的物料对象
+                                material_obj = models.InventoryMaterial.objects.get(id=item_id)
+                                # 创建产品物料的多对多关系对象
+                                pmrelation_obj = models.ProductMaterial.objects.create(pmMaterial=material_obj,pmProduct=product_obj,pmAmount=item_amount)
+                            except:
+                                message = "物料数据出错,请检查"
+                                addErrorlog(request,message,pageNow)
+                                return render(request,'addproducttemp.html',locals())
+                    message = "产品已创建,因备选内容不完整,故无法产生公式项"
+                    return render(request,'addproducttemp.html',locals())
                 else:
                     if not freightfee or freightfee == 0 or str(freightfee) == "0.00":
                         _dhlfee = calDHLShippingFee(weight,length,width,height)
@@ -880,17 +890,22 @@ class Addproducttemp(View):
                         if item==u'' or itemamount==u'':
                             pass
                         else:
-                            item_str=filter(str.isdigit,item.encode("utf-8"))
-                            item_id = int(item_str)
-                            item_amount_str=filter(str.isdigit,itemamount.encode("utf-8"))
-                            item_amount = int(item_amount_str)
-                            # 根据返回的物料id ,找出对应的物料对象
-                            material_obj = models.InventoryMaterial.objects.get(id=item_id)
-                            # 创建产品物料的多对多关系对象
-                            pmrelation_obj = models.ProductMaterial.objects.create(pmMaterial=material_obj,pmProduct=product_obj,pmAmount=item_amount)
-                    _act = "新建产品"+new_sku
-                    models.AutoLog.objects.create(date=getTime(),user=user_obj,act=_act)
-                    return HttpResponse("已创建完整产品信息")
+                            try:
+                                item_str=filter(str.isdigit,item.encode("utf-8"))
+                                item_id = int(item_str)
+                                item_amount_str=filter(str.isdigit,itemamount.encode("utf-8"))
+                                item_amount = int(item_amount_str)
+                                # 根据返回的物料id ,找出对应的物料对象
+                                material_obj = models.InventoryMaterial.objects.get(id=item_id)
+                                # 创建产品物料的多对多关系对象
+                                pmrelation_obj = models.ProductMaterial.objects.create(pmMaterial=material_obj,pmProduct=product_obj,pmAmount=item_amount)
+                            except:
+                                message = "物料数据出错,请检查"
+                                addErrorlog(request,message,pageNow)
+                                return render(request,'addproducttemp.html',locals())
+                    message = "新建产品"+new_sku
+                    models.AutoLog.objects.create(date=getTime(),user=user_obj,act=message)
+                    return render(request,'addproducttemp.html',locals())
                     
 
 
@@ -1086,15 +1101,9 @@ class Uploadoutstock(View):
                             material_obj = index.pmMaterial
                             material_obj.amount -= index.pmAmount*amountout
                             material_obj.save()
-                        if rowValues[3]:
-                            _dhlfee,tag_dhl = judgeinput(rowValues[3])
-                        else:
-                            _dhlfee = 0
-                        _totalfee = _dhlfee*amountout
-                        sumfreightfee += _totalfee
                         models.OutItem.objects.create(master=outstock_obj,productName=product_obj,amountOut=amountout,\
-                               site=rowValues[0],freightfee=_totalfee)
-                    outstock_obj.total_freightfee = sumfreightfee
+                               site=rowValues[0])
+                    # outstock_obj.total_freightfee = sumfreightfee
                     outstock_obj.save()
                     _act = "批量出库"+new_code
                     models.AutoLog.objects.create(date=getTime(),user=user_obj,act=_act)
@@ -1128,10 +1137,10 @@ def uploadOutstockCheck(request,efile,page):
                 _sku = rowValues[1]
                 amountout,amount_tag = judgeint(rowValues[2])
                 pt_test = models.ProductTemp.objects.filter(sku=_sku)
-                if rowValues[3]:
-                    _dhlfee,tag_dhl = judgeinput(rowValues[3]) 
-                else:
-                    _dhlfee = 0
+                # if rowValues[3]:
+                    # _dhlfee,tag_dhl = judgeinput(rowValues[3]) 
+                # else:
+                    # _dhlfee = 0,tag_dhl = 0 
                 #数量如果不是整数或=0,报错
                 #如果sku不存在,报错
                 if not pt_test:
@@ -1142,10 +1151,10 @@ def uploadOutstockCheck(request,efile,page):
                     error_msg = str(i+1)+"行,sku:"+_sku+"数量有误,请检查"
                     addErrorlog(request,error_msg,pageNow)
                     tag_error = 1
-                elif tag_dhl == "wrong_type":
-                    error_msg = str(i+1)+"行,sku:"+_sku+"自定义运费格式有误,请检查"
-                    addErrorlog(request,error_msg,pageNow)
-                    tag_error = 1
+                # elif tag_dhl == "wrong_type":
+                    # error_msg = str(i+1)+"行,sku:"+_sku+"自定义运费格式有误,请检查"
+                    # addErrorlog(request,error_msg,pageNow)
+                    # tag_error = 1
                 else:
                     product_obj = pt_test[0]
                     product_index = models.ProductMaterial.objects.filter(pmProduct=product_obj)
@@ -2403,19 +2412,26 @@ def pre2OutStock(request):
             if tag_error == 1:
                 return HttpResponse(json.dumps(ret))
             else:
+                #创建出库对象
                 outstock_obj = models.OutStock.objects.create(code=new_code,c_time=new_c_time,description=new_description,userOutstock=user_obj)
                 for item,itemamount in zip(items,itemamounts):
                     item_amount,itemtag_out = judgeint(itemamount)
+                    print item_amount,type(item_amount)
                     item=str(item)
-                    product_obj = models.ProductTemp.objects.get(sku=item)
+                    product_obj = models.ProductTemp.objects.get(sku=item) # 获取pro对象
                     _site = str(product_obj.site.name)
                     #拿到产品对应的物料对象set
-                    product_index = models.ProductMaterial.objects.filter(pmProduct=product_obj)
+                    product_index = models.ProductMaterial.objects.filter(pmProduct=product_obj)#获取物料对象QS
                     #每一个product对应了多个物料,和数量,遍历这些参数,便于增减
-                    for index in product_index:
-                        material_obj = index.pmMaterial
-                        material_obj.amount -= index.pmAmount*item_amount
-                        material_obj.save()
+                    try:
+                        for index in product_index:
+                            material_obj = index.pmMaterial
+                            material_obj.amount -= index.pmAmount*item_amount
+                            material_obj.save()
+                            print material_obj,material_obj.amount
+                    except:
+                        ret = {"tag_out":"物料数量出错"}
+                        return HttpResponse(json.dumps(ret))
                     item_weight = getWeight(product_obj.weight)
                     item_volume = getVolume(product_obj.length,product_obj.width,product_obj.height)
                     if product_obj.freightFee and product_obj.freightFee != 0:
