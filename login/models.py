@@ -107,7 +107,7 @@ class InventoryMaterial(models.Model):
     uniqueId =  models.CharField(verbose_name=_("唯一识别码"),max_length=100,blank=True,null=True)
     userPurchase = models.ForeignKey(User,verbose_name=_("采购人员"),blank=True,null=True)
     image = models.ImageField(_("图片"),upload_to='photos',blank=True,null=True,default="/photos/americanfootball.jpg")
-    price = models.DecimalField(verbose_name=_("采购价(rmb)"),max_digits=5,decimal_places=2,blank=True,null=True,default=0)
+    price = models.DecimalField(verbose_name=_("采购价(rmb)"),max_digits=15,decimal_places=2,blank=True,null=True,default=0)
 
     def __unicode__(self):
         return self.uniqueId

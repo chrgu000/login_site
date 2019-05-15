@@ -16,7 +16,7 @@
         </div>
         <div class="head" >
             <ul class="tab_header" id="search" >
-                <li class="{% if sort == '' %}active{% endif %}" style="float: left;"><a href="?q={{q}}">按编号排序</a></li>
+                <li class="{% if sort == '' %}active{% endif %}" style="float: left;"><a href="?sort=id&q={{q}}">按编号排序</a></li>
                 <li class="{% if sort == 'amountincrease' %}active{% endif %}" style="float: left;"><a href="?sort=amountincrease&q={{q}}">按库存递增排序</a></li>
                 <li class="{% if sort == 'amountdecrease' %}active{% endif %}" style="float: left;"><a href="?sort=amountdecrease&q={{q}}">按库存递减排序</a></li>
             </ul>
@@ -59,17 +59,17 @@
   <ul class="pagination">
 
     {% if inventorymaterials.has_previous %}
-        <li><a href="?page={{ inventorymaterials.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+        <li><a href="?page={{ inventorymaterials.previous_page_number }}&q={{q}}&sort={{sort}}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
     {% else %}
             <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
     {% endif %}    
 
     {% for i in pageRange %}
          {% if current_num == i %}
-          <li class="active"><a href="?page={{ i }}">{{ i }}</a></li>
+          <li class="active"><a href="?page={{ i }}&q={{q}}&sort={{sort}}">{{ i }}</a></li>
 
          {% else %}
-          <li><a href="?page={{ i }}">{{ i }}</a></li>
+          <li><a href="?page={{ i }}&q={{q}}&sort={{sort}}">{{ i }}</a></li>
          {% endif %}
     {% endfor %}
 

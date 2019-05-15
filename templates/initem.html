@@ -106,7 +106,7 @@
 $(document).ready(function(){
     $("input.selectItem").click(function(e){
         var itemid = "item"+getIdFromUrl();
-        var selectname = $(this).attr('name');
+        var selectname = $(this).parent("td").parent("tr").find("td:eq(1)").text();
         var desid = "des"+getIdFromUrl();
         var description = $(this).parent("td").parent("tr").find("td:eq(3)").text();
         var amount = $(this).parent("td").parent("tr").find("td:eq(2)").text();
@@ -162,7 +162,7 @@ $(document).ready(function(){
             <!-- //赋值 -->
             $("#divMain").html(nn);
              <!-- //显示搜索内容相关的div -->
-             $(".card").hide().filter(":contains('"+txt+"')").show();
+            $(".card").hide().filter(":contains('"+txt+"')").show();
 
          }
          else

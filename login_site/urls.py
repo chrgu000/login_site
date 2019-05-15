@@ -26,13 +26,13 @@ urlpatterns = [
     url(r'^register/', views.register),
     url(r'^logout/', views.logout),
     url(r'^captcha', include('captcha.urls')),
-    url(r'^addproduct/',views.addproduct),
+    # url(r'^addproduct/',views.addproduct),
     
-    url(r'^uploadproduct/',views.UploadproductView.as_view(),name='uploadproduct'),
-    url(r'^inventory/',views.InventoryView.as_view(),name='inventory_list'),
-    url(r'^searchtest/$',views.searchtest),
-    url(r'^detail/(\d+)$',views.detail,name='detail-url'),
-    url(r'^result/',views.search),
+    # url(r'^uploadproduct/',views.UploadproductView.as_view(),name='uploadproduct'),
+    # url(r'^inventory/',views.InventoryView.as_view(),name='inventory_list'),
+    # url(r'^searchtest/$',views.searchtest),
+    # url(r'^detail/(\d+)$',views.detail,name='detail-url'),
+    # url(r'^result/',views.search),
     
     # url(r'^search/',views.search,name='search'),
     
